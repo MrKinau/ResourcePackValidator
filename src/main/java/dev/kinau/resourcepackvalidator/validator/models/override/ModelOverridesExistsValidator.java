@@ -9,7 +9,13 @@ import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.context.FileContext;
 import dev.kinau.resourcepackvalidator.validator.generic.FileContextValidator;
 
+import java.util.Map;
+
 public class ModelOverridesExistsValidator extends FileContextValidator<JsonArray, Object> {
+
+    public ModelOverridesExistsValidator(Map<String, JsonObject> config) {
+        super(config);
+    }
 
     @Override
     protected ValidationResult<Object> isValid(ValidationJob job, FileContext context, JsonArray data) {

@@ -1,6 +1,7 @@
 package dev.kinau.resourcepackvalidator.validator.generic;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.validator.ValidationResult;
@@ -12,10 +13,15 @@ import dev.kinau.resourcepackvalidator.validator.context.FileContextWithData;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class JsonElementMapper extends Validator<ValidationJob, EmptyValidationContext, Collection<FileContextWithData<JsonElement>>> {
 
     protected final List<Validator<JsonElement, FileContext, ?>> chainedValidators = new ArrayList<>();
+
+    public JsonElementMapper(Map<String, JsonObject> config) {
+        super(config);
+    }
 
     public <V> Validator<ValidationJob, EmptyValidationContext, Collection<FileContextWithData<JsonElement>>> thenForEachElement(Validator<JsonElement, FileContext, V> next) {
         this.chainedValidators.add(next);
@@ -24,6 +30,8 @@ public class JsonElementMapper extends Validator<ValidationJob, EmptyValidationC
 
     @Override
     public boolean validate(ValidationJob job, EmptyValidationContext context, ValidationJob data) {
+        if (shouldSkip(context))
+            return false;
         ValidationResult<Collection<FileContextWithData<JsonElement>>> result = isValid(job, context, data);
 
         for (Validator<JsonElement, FileContext, ?> chainedValidator : chainedValidators) {

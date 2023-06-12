@@ -13,6 +13,10 @@ import java.util.Map;
 
 public class ModelTexturesExistsValidator extends FileContextValidator<JsonObject, Map<String, String>> {
 
+    public ModelTexturesExistsValidator(Map<String, JsonObject> config) {
+        super(config);
+    }
+
     @Override
     protected ValidationResult<Map<String, String>> isValid(ValidationJob job, FileContext context, JsonObject textures) {
         Map<String, String> textureData = new HashMap<>();

@@ -7,7 +7,13 @@ import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.context.FileContext;
 import dev.kinau.resourcepackvalidator.validator.generic.FileContextValidator;
 
+import java.util.Map;
+
 public class ModelHasAnyOverrideValidator extends FileContextValidator<JsonObject, JsonArray> {
+
+    public ModelHasAnyOverrideValidator(Map<String, JsonObject> config) {
+        super(config);
+    }
 
     @Override
     protected ValidationResult<JsonArray> isValid(ValidationJob job, FileContext context, JsonObject modelObj) {

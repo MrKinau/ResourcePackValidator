@@ -1,10 +1,13 @@
 package dev.kinau.resourcepackvalidator;
 
+import com.google.gson.Gson;
+import dev.kinau.resourcepackvalidator.config.Config;
 import dev.kinau.resourcepackvalidator.validator.ValidatorRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.LogManager;
 
@@ -28,10 +31,12 @@ public class ResourcePackValidator {
         if (commandLine.hasOption("verbose"))
             adjustLogLevel();
 
+        Config config = initConfig();
+
         File rootDir = getRootDirectory();
         if (rootDir == null) return;
 
-        ValidatorRegistry registry = new ValidatorRegistry();
+        ValidatorRegistry registry = new ValidatorRegistry(config);
         validate(rootDir, registry);
     }
 
@@ -62,6 +67,7 @@ public class ResourcePackValidator {
         options.addOption("help", false, "prints the help");
         options.addOption("rp", "resourcepack", true, "specifies the path to the resourcepack to be validated");
         options.addOption("v", "verbose", false, "sets the log level to DEBUG");
+        options.addOption("config", true, "specifies the path of the configuration file");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine commandLine = parser.parse(options, args);
@@ -70,6 +76,22 @@ public class ResourcePackValidator {
             return null;
         }
         return commandLine;
+    }
+
+    private Config initConfig() {
+        File file = new File("config.json");
+        if (commandLine.hasOption("config"))
+            file = new File(commandLine.getOptionValue("config"));
+        if (!file.exists()) {
+            log.warn("Could not load configuration at {}. Using default configuration.", file.getAbsolutePath());
+            return new Config();
+        }
+        try {
+            return new Gson().fromJson(new FileReader(file), Config.class);
+        } catch (Exception ex) {
+            log.warn("Could not load configuration at " + file.getAbsolutePath(), ex);
+        }
+        return new Config();
     }
 
     private File getRootDirectory() {

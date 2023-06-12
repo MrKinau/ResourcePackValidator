@@ -87,7 +87,7 @@ public class FileUtils {
     }
 
     public static boolean modelExists(Namespace defaultNamespace, File rootDir, String relPath) {
-        return fileExists(Directory.MODELS, defaultNamespace, rootDir, relPath, ".json", FileUtils::isVanillaModel);
+        return relPath.startsWith("builtin/") || fileExists(Directory.MODELS, defaultNamespace, rootDir, relPath, ".json", FileUtils::isVanillaModel);
     }
 
     public static boolean isVanillaTexture(String texturePath) {
