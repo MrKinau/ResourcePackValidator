@@ -1,6 +1,4 @@
 # Resource Pack Validator
-=============
-
 [![GitHub issues](https://img.shields.io/github/issues/MrKinau/ResourcePackValidator)](https://github.com/MrKinau/ResourcePackValidator/issues)
 [![License](https://img.shields.io/github/license/MrKinau/ResourcePackValidator)](https://github.com/MrKinau/ResourcePackValidator/blob/master/LICENSE)
 [![Discord](https://img.shields.io/discord/550764567282712583?logo=discord)](https://discord.gg/xHpCDYf)
