@@ -26,8 +26,8 @@ Checks every file if it has been referenced in any json file. Most files need to
 
 ## Commandline Arguments
 - `-help` Show all available commandline arguments
-- `-resourcepack <directory>`, `-rp <directory>` Specifies the path of the resource pack to validate. By default, it assumes the resource pack is located at `./resourcepack`
-- `-verbose`, `-v` Enables verbose log output
+- `--resourcepack <directory>`, `-rp <directory>` Specifies the path of the resource pack to validate. By default, it assumes the resource pack is located at `./resourcepack`
+- `--verbose`, `-v` Enables verbose log output
 - `-config` Specifies the path to the config file. By default, it assumes it is located at `./config.json`
 
 ## Config
