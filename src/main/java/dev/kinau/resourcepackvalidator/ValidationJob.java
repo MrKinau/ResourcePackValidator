@@ -42,9 +42,9 @@ public class ValidationJob {
                 .toList();
     }
 
-    public void validate() {
+    public boolean validate() {
         log.debug("Starting validation…");
-        registry.validate(this);
+        return registry.validate(this);
     }
 
 }

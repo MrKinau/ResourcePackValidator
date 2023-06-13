@@ -29,17 +29,20 @@ public class JsonElementMapper extends Validator<ValidationJob, EmptyValidationC
     }
 
     @Override
-    public boolean validate(ValidationJob job, EmptyValidationContext context, ValidationJob data) {
+    public ValidationResult.Status validate(ValidationJob job, EmptyValidationContext context, ValidationJob data) {
         if (shouldSkip(context))
-            return false;
+            return ValidationResult.Status.SKIPPED;
         ValidationResult<Collection<FileContextWithData<JsonElement>>> result = isValid(job, context, data);
 
+        boolean anyChainedValidatorFailed = false;
         for (Validator<JsonElement, FileContext, ?> chainedValidator : chainedValidators) {
             for (FileContextWithData<JsonElement> contextAndData : result.result()) {
-                chainedValidator.validate(job, contextAndData, contextAndData.data());
+                ValidationResult.Status status = chainedValidator.validate(job, contextAndData, contextAndData.data());
+                if (status == ValidationResult.Status.FAILED)
+                    anyChainedValidatorFailed = true;
             }
         }
-        return true;
+        return anyChainedValidatorFailed ? ValidationResult.Status.FAILED : ValidationResult.Status.SUCCESS;
     }
 
     @Override

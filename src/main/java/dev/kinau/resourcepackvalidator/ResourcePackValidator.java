@@ -37,7 +37,8 @@ public class ResourcePackValidator {
         if (rootDir == null) return;
 
         ValidatorRegistry registry = new ValidatorRegistry(config);
-        validate(rootDir, registry);
+        boolean finishedWithoutError = validate(rootDir, registry);
+        System.exit(finishedWithoutError ? 0 : 1);
     }
 
     private void initLogging() {
@@ -112,10 +113,10 @@ public class ResourcePackValidator {
         return rootDir;
     }
 
-    private void validate(File rootDir, ValidatorRegistry registry) {
+    private boolean validate(File rootDir, ValidatorRegistry registry) {
         log.info("Starting validation of {}", rootDir.getPath());
         ValidationJob validation = new ValidationJob(rootDir, registry);
-        validation.validate();
+        return validation.validate();
     }
 
 }

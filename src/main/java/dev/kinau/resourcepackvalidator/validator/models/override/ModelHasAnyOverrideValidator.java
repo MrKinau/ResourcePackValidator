@@ -18,9 +18,9 @@ public class ModelHasAnyOverrideValidator extends FileContextValidator<JsonObjec
     @Override
     protected ValidationResult<JsonArray> isValid(ValidationJob job, FileContext context, JsonObject modelObj) {
         if (!modelObj.has("overrides"))
-            return failedSilent();
+            return skip();
         if (!modelObj.get("overrides").isJsonArray())
-            return failedSilent();
+            return skip();
         return success(modelObj.getAsJsonArray("overrides"));
     }
 }

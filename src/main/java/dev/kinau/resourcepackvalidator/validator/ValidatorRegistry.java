@@ -43,8 +43,9 @@ public class ValidatorRegistry {
                 .then(new UnusedFileValidator(configData));
     }
 
-    public void validate(ValidationJob job) {
-        rootValidator.validate(job, ValidationContext.EMPTY, job);
+    public boolean validate(ValidationJob job) {
+        ValidationResult.Status status = rootValidator.validate(job, ValidationContext.EMPTY, job);
+        return status != ValidationResult.Status.FAILED;
     }
 
 }

@@ -1,6 +1,5 @@
 package dev.kinau.resourcepackvalidator.validator.general;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
@@ -13,9 +12,7 @@ import dev.kinau.resourcepackvalidator.validator.context.JsonElementWithFile;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,6 +75,8 @@ public class UnusedFileValidator extends Validator<ValidationJob, EmptyValidatio
             failedError("Found unused file at {}", s);
         });
 
+        if (unusedFiles.size() > 0)
+            return failedError();
         return success();
     }
 }

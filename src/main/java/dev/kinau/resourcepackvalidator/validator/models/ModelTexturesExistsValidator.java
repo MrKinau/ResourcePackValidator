@@ -27,11 +27,12 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
             if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
                 failed = true;
                 failedError("Model has invalid texture registered (texture value is not string) for variable {} at {}", key, context.value().getPath());
+                continue;
             }
             textureData.put(key, value.getAsString());
         }
         if (failed)
-            return failedSilent();
+            return failedError();
 
         for (Map.Entry<String, String> kv : textureData.entrySet()) {
             if (kv.getValue().startsWith("#")) {
@@ -44,7 +45,7 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
             }
         }
         if (failed)
-            return failedSilent();
+            return failedError();
 
         return success(textureData);
     }

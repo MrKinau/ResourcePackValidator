@@ -34,7 +34,7 @@ public class ModelHasAnyTextureValidator extends FileContextValidator<JsonObject
 
     private ValidationResult<JsonObject> failOrSkip(FileContext context, ValidationJob job, JsonObject data, String warning, Object... args) {
         if (hasParent(context, job, data))
-            return failedSilent();
+            return skip();
         return failedError(warning, args);
     }
 

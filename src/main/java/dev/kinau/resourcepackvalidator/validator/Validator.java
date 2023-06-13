@@ -29,17 +29,20 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
         return this;
     }
 
-    public boolean validate(ValidationJob job, Context context, Input data) {
+    public ValidationResult.Status validate(ValidationJob job, Context context, Input data) {
         if (shouldSkip(context))
-            return false;
+            return ValidationResult.Status.SKIPPED;
         ValidationResult<Output> result = isValid(job, context, data);
-        if (result.status() == ValidationResult.Status.FAILED)
-            return false;
+        if (result.status() != ValidationResult.Status.SUCCESS)
+            return result.status();
 
+        boolean anyChainedValidatorFailed = false;
         for (Validator<Output, Context, ?> chainedValidator : chainedValidators) {
-            chainedValidator.validate(job, context, result.result());
+            ValidationResult.Status status = chainedValidator.validate(job, context, result.result());
+            if (status == ValidationResult.Status.FAILED)
+                anyChainedValidatorFailed = true;
         }
-        return true;
+        return anyChainedValidatorFailed ? ValidationResult.Status.FAILED : ValidationResult.Status.SUCCESS;
     }
 
     protected abstract ValidationResult<Output> isValid(ValidationJob job, Context context, Input data);
@@ -60,22 +63,28 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
         return (T) (Optional.ofNullable(config().get(key)).orElse(defaultValue));
     }
 
-    final protected ValidationResult<Output> failedError(String error, Object... args) {
-        log.atLevel(failedLogLevel()).log(logPrefix() + error, args);
-        return new ValidationResult<>(null, ValidationResult.Status.FAILED);
-    }
-
-    final protected ValidationResult<Output> failedSilent(String error, Object... args) {
-        log.debug(logPrefix() + error, args);
-        return new ValidationResult<>(null, ValidationResult.Status.FAILED);
-    }
-
     final protected String logPrefix() {
         return String.format("[%-30s] ", getClass().getSimpleName());
     }
 
-    final protected ValidationResult<Output> failedSilent() {
-        return new ValidationResult<>(null, ValidationResult.Status.FAILED);
+    final protected ValidationResult<Output> failedError(String error, Object... args) {
+        Level logLevel = failedLogLevel();
+        log.atLevel(logLevel).log(logPrefix() + error, args);
+        return new ValidationResult<>(null, logLevel == Level.WARN ? ValidationResult.Status.SKIPPED : ValidationResult.Status.FAILED);
+    }
+
+    final protected ValidationResult<Output> failedError() {
+        Level logLevel = failedLogLevel();
+        return new ValidationResult<>(null, logLevel == Level.WARN ? ValidationResult.Status.SKIPPED : ValidationResult.Status.FAILED);
+    }
+
+    final protected ValidationResult<Output> skip(String error, Object... args) {
+        log.debug(logPrefix() + error, args);
+        return new ValidationResult<>(null, ValidationResult.Status.SKIPPED);
+    }
+
+    final protected ValidationResult<Output> skip() {
+        return new ValidationResult<>(null, ValidationResult.Status.SKIPPED);
     }
 
     final protected ValidationResult<Output> success(Output result) {

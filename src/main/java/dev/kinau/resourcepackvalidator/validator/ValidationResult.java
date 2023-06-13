@@ -14,6 +14,7 @@ public class ValidationResult<U> {
 
     public enum Status {
         SUCCESS,
-        FAILED
+        FAILED,
+        SKIPPED
     }
 }

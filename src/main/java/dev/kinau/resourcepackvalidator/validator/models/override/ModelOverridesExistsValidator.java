@@ -21,13 +21,22 @@ public class ModelOverridesExistsValidator extends FileContextValidator<JsonArra
     protected ValidationResult<Object> isValid(ValidationJob job, FileContext context, JsonArray data) {
         boolean failed = false;
         for (JsonElement datum : data) {
-            if (!datum.isJsonObject())
+            if (!datum.isJsonObject()) {
+                failed = true;
                 failedError("Invalid override found (not a json object) at {}", context.value().getPath());
+                continue;
+            }
             JsonObject override = datum.getAsJsonObject();
-            if (!override.has("model"))
+            if (!override.has("model")) {
+                failed = true;
                 failedError("No model in override {} at {}", override.toString(), context.value().getPath());
-            if (!override.get("model").isJsonPrimitive() || !override.get("model").getAsJsonPrimitive().isString())
+                continue;
+            }
+            if (!override.get("model").isJsonPrimitive() || !override.get("model").getAsJsonPrimitive().isString()) {
+                failed = true;
                 failedError("Model in override {} is wrong type (not primitive) at {}", override.toString(), context.value().getPath());
+                continue;
+            }
             String model = override.getAsJsonPrimitive("model").getAsString();
 
             if (!FileUtils.modelExists(context.namespace(), job.rootDir(), model)) {
@@ -36,7 +45,7 @@ public class ModelOverridesExistsValidator extends FileContextValidator<JsonArra
             }
         }
         if (failed)
-            return failedSilent();
+            return failedError();
         return success();
     }
 }
