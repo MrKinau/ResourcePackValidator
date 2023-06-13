@@ -21,6 +21,7 @@ import java.io.IOException;
 @Getter
 public class NamespaceJsonCache {
 
+    private boolean parsingErrorOccurred;
     private final Namespace namespace;
     private final Multimap<FileUtils.Directory, JsonElementWithFile> cache = HashMultimap.create();
 
@@ -42,6 +43,7 @@ public class NamespaceJsonCache {
                     JsonElement element = JsonParser.parseReader(new FileReader(file));
                     cache.put(rpDir, new JsonElementWithFile(file, element));
                 } catch (IOException | JsonParseException ex) {
+                    this.parsingErrorOccurred = true;
                     log.error("Could not parse file {}", file.getPath(), ex);
                 }
             });

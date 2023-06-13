@@ -12,10 +12,8 @@ import org.slf4j.event.Level;
 
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -99,7 +97,8 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
         try {
             return Level.valueOf(configValue("logLevel", new JsonPrimitive(defaultFailedLogLevel().name())).getAsString());
         } catch (Throwable e) {
-            log.error("Error while accessing log level", e);
+            log.warn("Invalid configured log level. Possible values are " + Arrays.stream(Level.values())
+                    .map(Enum::name).collect(Collectors.joining(", ")), e);
         }
         return defaultFailedLogLevel();
     }

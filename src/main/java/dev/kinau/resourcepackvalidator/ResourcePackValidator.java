@@ -14,6 +14,7 @@ import java.util.logging.LogManager;
 @Slf4j
 public class ResourcePackValidator {
 
+    private boolean failAtEnd;
     private CommandLine commandLine;
 
     public static void main(String[] args) {
@@ -26,6 +27,7 @@ public class ResourcePackValidator {
             this.commandLine = initCLI(args);
             if (commandLine == null) return;
         } catch (ParseException ex) {
+            this.failAtEnd = true;
             log.error("Could not parse start arguments", ex);
         }
         if (commandLine.hasOption("verbose"))
@@ -37,7 +39,7 @@ public class ResourcePackValidator {
         if (rootDir == null) return;
 
         ValidatorRegistry registry = new ValidatorRegistry(config);
-        boolean finishedWithoutError = validate(rootDir, registry);
+        boolean finishedWithoutError = validate(rootDir, registry) && !failAtEnd;
         System.exit(finishedWithoutError ? 0 : 1);
     }
 
@@ -59,6 +61,7 @@ public class ResourcePackValidator {
                 return oldVal;
             });
         } catch (IOException ex) {
+            this.failAtEnd = true;
             log.error("Could not adjust the log level", ex);
         }
     }
@@ -101,11 +104,13 @@ public class ResourcePackValidator {
             rootDir = new File(commandLine.getOptionValue("rp"));
 
         if (!rootDir.exists()) {
+            this.failAtEnd = true;
             log.error("Could not find directory {}", rootDir.getAbsolutePath());
             return null;
         }
 
         if (!rootDir.isDirectory()) {
+            this.failAtEnd = true;
             log.error("Path {} points to a file, but needs to be a directory", rootDir.getAbsolutePath());
             return null;
         }

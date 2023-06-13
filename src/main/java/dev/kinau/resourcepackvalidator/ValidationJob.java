@@ -44,7 +44,8 @@ public class ValidationJob {
 
     public boolean validate() {
         log.debug("Starting validation…");
-        return registry.validate(this);
+        return registry.validate(this)
+                && jsonCache.values().stream().noneMatch(NamespaceJsonCache::parsingErrorOccurred);
     }
 
 }
