@@ -3,6 +3,7 @@ package dev.kinau.resourcepackvalidator.validator.models;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
+import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.context.FileContext;
@@ -13,8 +14,8 @@ import java.util.Map;
 
 public class ModelTexturesExistsValidator extends FileContextValidator<JsonObject, Map<String, String>> {
 
-    public ModelTexturesExistsValidator(Map<String, JsonObject> config) {
-        super(config);
+    public ModelTexturesExistsValidator(Map<String, JsonObject> config, TestSuite testSuite) {
+        super(config, testSuite);
     }
 
     @Override

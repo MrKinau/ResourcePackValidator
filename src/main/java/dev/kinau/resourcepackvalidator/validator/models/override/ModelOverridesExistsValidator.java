@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
+import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.context.FileContext;
@@ -13,8 +14,8 @@ import java.util.Map;
 
 public class ModelOverridesExistsValidator extends FileContextValidator<JsonArray, Object> {
 
-    public ModelOverridesExistsValidator(Map<String, JsonObject> config) {
-        super(config);
+    public ModelOverridesExistsValidator(Map<String, JsonObject> config, TestSuite testSuite) {
+        super(config, testSuite);
     }
 
     @Override

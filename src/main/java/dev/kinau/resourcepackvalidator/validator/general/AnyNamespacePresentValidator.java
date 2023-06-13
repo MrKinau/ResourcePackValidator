@@ -2,6 +2,7 @@ package dev.kinau.resourcepackvalidator.validator.general;
 
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
+import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.utils.Namespace;
 import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.Validator;
@@ -16,8 +17,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AnyNamespacePresentValidator extends Validator<Collection<Namespace>, EmptyValidationContext, Object> {
 
-    public AnyNamespacePresentValidator(Map<String, JsonObject> config) {
-        super(config);
+    public AnyNamespacePresentValidator(Map<String, JsonObject> config, TestSuite testSuite) {
+        super(config, testSuite);
     }
 
     @Override

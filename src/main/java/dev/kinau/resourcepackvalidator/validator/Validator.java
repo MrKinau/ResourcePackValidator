@@ -5,6 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import dev.kinau.resourcepackvalidator.ValidationJob;
+import dev.kinau.resourcepackvalidator.report.TestCase;
+import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.validator.context.ValidationContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public abstract class Validator<Input, Context extends ValidationContext<?>, Output> {
 
     private final Map<String, JsonObject> config;
+    protected final TestSuite testSuite;
     protected final List<Validator<Output, Context, ?>> chainedValidators = new ArrayList<>();
 
     public <V> Validator<Input, Context, Output> then(Validator<Output, Context, V> next) {
@@ -30,7 +33,13 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
     public ValidationResult.Status validate(ValidationJob job, Context context, Input data) {
         if (shouldSkip(context))
             return ValidationResult.Status.SKIPPED;
+        TestCase testCase = null;
+        boolean skipTestCase = skipTestCase(context);
+        if (!skipTestCase)
+            testCase = testSuite.getCase(getClass()).start();
         ValidationResult<Output> result = isValid(job, context, data);
+        if (!skipTestCase)
+            testCase.stop();
         if (result.status() != ValidationResult.Status.SUCCESS)
             return result.status();
 
@@ -53,6 +62,10 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
         return !configValue("enabled", new JsonPrimitive(true)).getAsBoolean();
     }
 
+    protected boolean skipTestCase(Context context) {
+        return false;
+    }
+
     final protected JsonObject config() {
         return config.getOrDefault(getClass().getSimpleName(), new JsonObject());
     }
@@ -68,6 +81,7 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
     final protected ValidationResult<Output> failedError(String error, Object... args) {
         Level logLevel = failedLogLevel();
         log.atLevel(logLevel).log(logPrefix() + error, args);
+        testSuite.getCase(getClass()).addErrorNoMessage(logLevel, String.format(error.replace("{}", "%s"), args));
         return new ValidationResult<>(null, logLevel == Level.WARN ? ValidationResult.Status.SKIPPED : ValidationResult.Status.FAILED);
     }
 

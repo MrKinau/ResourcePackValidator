@@ -29,6 +29,7 @@ Checks every file if it has been referenced in any json file. Most files need to
 - `--resourcepack <directory>`, `-rp <directory>` Specifies the path of the resource pack to validate. By default, it assumes the resource pack is located at `./resourcepack`
 - `--verbose`, `-v` Enables verbose log output
 - `-config` Specifies the path to the config file. By default, it assumes it is located at `./config.json`
+- `-report <file>` Specifies the path the report file. By default, it does not generate a XML report
 
 ## Config
 All Validators can be configured with a configuration file, which is read from `./config.json`, but the location can be changed with a commandline argument.

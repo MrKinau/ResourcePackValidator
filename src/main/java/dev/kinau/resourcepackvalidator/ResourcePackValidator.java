@@ -2,6 +2,9 @@ package dev.kinau.resourcepackvalidator;
 
 import com.google.gson.Gson;
 import dev.kinau.resourcepackvalidator.config.Config;
+import dev.kinau.resourcepackvalidator.report.ReportGenerator;
+import dev.kinau.resourcepackvalidator.report.TestCase;
+import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.validator.ValidatorRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
@@ -14,7 +17,7 @@ import java.util.logging.LogManager;
 @Slf4j
 public class ResourcePackValidator {
 
-    private boolean failAtEnd;
+    private final TestSuite testSuite;
     private CommandLine commandLine;
 
     public static void main(String[] args) {
@@ -23,12 +26,15 @@ public class ResourcePackValidator {
 
     public ResourcePackValidator(String[] args) {
         initLogging();
+        this.testSuite = new TestSuite();
+        TestCase cliArgumentsCorrect = testSuite.getCase("CLI Arguments valid").start();
         try {
             this.commandLine = initCLI(args);
             if (commandLine == null) return;
         } catch (ParseException ex) {
-            this.failAtEnd = true;
-            log.error("Could not parse start arguments", ex);
+            cliArgumentsCorrect.addError("Could not parse start arguments", ex);
+        } finally {
+            cliArgumentsCorrect.stop();
         }
         if (commandLine.hasOption("verbose"))
             adjustLogLevel();
@@ -38,8 +44,13 @@ public class ResourcePackValidator {
         File rootDir = getRootDirectory();
         if (rootDir == null) return;
 
-        ValidatorRegistry registry = new ValidatorRegistry(config);
-        boolean finishedWithoutError = validate(rootDir, registry) && !failAtEnd;
+        ValidatorRegistry registry = new ValidatorRegistry(config, testSuite);
+        boolean finishedWithoutError = validate(rootDir, registry) && testSuite.hasNoFailure();
+
+        if (commandLine.hasOption("report")) {
+            new ReportGenerator(testSuite.testCases(), new File(commandLine.getOptionValue("report")));
+        }
+
         System.exit(finishedWithoutError ? 0 : 1);
     }
 
@@ -52,6 +63,7 @@ public class ResourcePackValidator {
     }
 
     private void adjustLogLevel() {
+        TestCase adjustLogLevel = testSuite.getCase("Adjust log level").start();
         try {
             LogManager.getLogManager().updateConfiguration((key) -> (oldVal, newVal) -> {
                 if (key.equals(".level"))
@@ -61,8 +73,9 @@ public class ResourcePackValidator {
                 return oldVal;
             });
         } catch (IOException ex) {
-            this.failAtEnd = true;
-            log.error("Could not adjust the log level", ex);
+            adjustLogLevel.addError("Could not adjust the log level", ex);
+        } finally {
+            adjustLogLevel.stop();
         }
     }
 
@@ -72,6 +85,7 @@ public class ResourcePackValidator {
         options.addOption("rp", "resourcepack", true, "specifies the path to the resourcepack to be validated");
         options.addOption("v", "verbose", false, "sets the log level to DEBUG");
         options.addOption("config", true, "specifies the path of the configuration file");
+        options.addOption("report", true, "specifies the path for the generated report file");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine commandLine = parser.parse(options, args);
@@ -99,21 +113,23 @@ public class ResourcePackValidator {
     }
 
     private File getRootDirectory() {
+        TestCase rootDirectoryValid = testSuite.getCase("Root directory valid").start();
         File rootDir = new File("resourcepack");
         if (commandLine.hasOption("rp"))
             rootDir = new File(commandLine.getOptionValue("rp"));
 
         if (!rootDir.exists()) {
-            this.failAtEnd = true;
-            log.error("Could not find directory {}", rootDir.getAbsolutePath());
+            rootDirectoryValid.addError("Could not find directory " + rootDir.getAbsolutePath());
+            rootDirectoryValid.stop();
             return null;
         }
 
         if (!rootDir.isDirectory()) {
-            this.failAtEnd = true;
-            log.error("Path {} points to a file, but needs to be a directory", rootDir.getAbsolutePath());
+            rootDirectoryValid.addError("Path " + rootDir.getAbsolutePath() + " points to a file, but needs to be a directory");
+            rootDirectoryValid.stop();
             return null;
         }
+        rootDirectoryValid.stop();
 
         return rootDir;
     }

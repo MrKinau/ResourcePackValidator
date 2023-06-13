@@ -3,6 +3,7 @@ package dev.kinau.resourcepackvalidator.validator.general;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
+import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.utils.Tuple;
 import dev.kinau.resourcepackvalidator.validator.ValidationResult;
@@ -21,8 +22,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UnusedFileValidator extends Validator<ValidationJob, EmptyValidationContext, Object> {
 
-    public UnusedFileValidator(Map<String, JsonObject> config) {
-        super(config);
+    public UnusedFileValidator(Map<String, JsonObject> config, TestSuite testSuite) {
+        super(config, testSuite);
     }
 
     @Override

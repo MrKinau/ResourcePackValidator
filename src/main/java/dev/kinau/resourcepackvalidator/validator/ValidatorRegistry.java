@@ -3,6 +3,7 @@ package dev.kinau.resourcepackvalidator.validator;
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
 import dev.kinau.resourcepackvalidator.config.Config;
+import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.validator.context.EmptyValidationContext;
 import dev.kinau.resourcepackvalidator.validator.context.ValidationContext;
 import dev.kinau.resourcepackvalidator.validator.general.AnyNamespacePresentValidator;
@@ -21,26 +22,31 @@ public class ValidatorRegistry {
 
     private final Validator<ValidationJob, EmptyValidationContext, ValidationJob> rootValidator;
 
-    public ValidatorRegistry(Config config) {
+    public ValidatorRegistry(Config config, TestSuite testSuite) {
         Map<String, JsonObject> configData = config.validators();
 
-        this.rootValidator = new Validator<>(configData) {
+        this.rootValidator = new Validator<>(configData, testSuite) {
             @Override
             protected ValidationResult<ValidationJob> isValid(ValidationJob job, EmptyValidationContext context, ValidationJob data) {
                 return success(job);
             }
+
+            @Override
+            protected boolean skipTestCase(EmptyValidationContext context) {
+                return true;
+            }
         };
 
         rootValidator
-                .then(new NamespaceCollectionValidator(configData)
-                        .then(new AnyNamespacePresentValidator(configData)))
-                .then(new JsonElementMapper(configData)
-                        .thenForEachElement(new ModelIsJsonObjectValidator(configData)
-                                .then(new ModelHasAnyTextureValidator(configData)
-                                        .then(new ModelTexturesExistsValidator(configData)))
-                                .then(new ModelHasAnyOverrideValidator(configData)
-                                        .then(new ModelOverridesExistsValidator(configData)))))
-                .then(new UnusedFileValidator(configData));
+                .then(new NamespaceCollectionValidator(configData, testSuite)
+                        .then(new AnyNamespacePresentValidator(configData, testSuite)))
+                .then(new JsonElementMapper(configData, testSuite)
+                        .thenForEachElement(new ModelIsJsonObjectValidator(configData, testSuite)
+                                .then(new ModelHasAnyTextureValidator(configData, testSuite)
+                                        .then(new ModelTexturesExistsValidator(configData, testSuite)))
+                                .then(new ModelHasAnyOverrideValidator(configData, testSuite)
+                                        .then(new ModelOverridesExistsValidator(configData, testSuite)))))
+                .then(new UnusedFileValidator(configData, testSuite));
     }
 
     public boolean validate(ValidationJob job) {

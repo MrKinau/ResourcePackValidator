@@ -3,6 +3,8 @@ package dev.kinau.resourcepackvalidator.validator.generic;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
+import dev.kinau.resourcepackvalidator.report.TestCase;
+import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.Validator;
@@ -19,8 +21,8 @@ public class JsonElementMapper extends Validator<ValidationJob, EmptyValidationC
 
     protected final List<Validator<JsonElement, FileContext, ?>> chainedValidators = new ArrayList<>();
 
-    public JsonElementMapper(Map<String, JsonObject> config) {
-        super(config);
+    public JsonElementMapper(Map<String, JsonObject> config, TestSuite testSuite) {
+        super(config, testSuite);
     }
 
     public <V> Validator<ValidationJob, EmptyValidationContext, Collection<FileContextWithData<JsonElement>>> thenForEachElement(Validator<JsonElement, FileContext, V> next) {
@@ -32,7 +34,13 @@ public class JsonElementMapper extends Validator<ValidationJob, EmptyValidationC
     public ValidationResult.Status validate(ValidationJob job, EmptyValidationContext context, ValidationJob data) {
         if (shouldSkip(context))
             return ValidationResult.Status.SKIPPED;
+        TestCase testCase = null;
+        boolean skipTestCase = skipTestCase(context);
+        if (!skipTestCase)
+            testCase = testSuite.getCase(getClass()).start();
         ValidationResult<Collection<FileContextWithData<JsonElement>>> result = isValid(job, context, data);
+        if (!skipTestCase)
+            testCase.stop();
 
         boolean anyChainedValidatorFailed = false;
         for (Validator<JsonElement, FileContext, ?> chainedValidator : chainedValidators) {
