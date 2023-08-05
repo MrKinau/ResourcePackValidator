@@ -15,6 +15,8 @@ import dev.kinau.resourcepackvalidator.validator.models.ModelIsJsonObjectValidat
 import dev.kinau.resourcepackvalidator.validator.models.ModelTexturesExistsValidator;
 import dev.kinau.resourcepackvalidator.validator.models.override.ModelHasAnyOverrideValidator;
 import dev.kinau.resourcepackvalidator.validator.models.override.ModelOverridesExistsValidator;
+import dev.kinau.resourcepackvalidator.validator.texture.TextureLimitMipLevelValidator;
+import dev.kinau.resourcepackvalidator.validator.texture.TextureMapper;
 
 import java.util.Map;
 
@@ -46,6 +48,8 @@ public class ValidatorRegistry {
                                         .then(new ModelTexturesExistsValidator(configData, testSuite)))
                                 .then(new ModelHasAnyOverrideValidator(configData, testSuite)
                                         .then(new ModelOverridesExistsValidator(configData, testSuite)))))
+                .then(new TextureMapper(configData, testSuite)
+                        .thenForEachElement(new TextureLimitMipLevelValidator(configData, testSuite)))
                 .then(new UnusedFileValidator(configData, testSuite));
     }
 

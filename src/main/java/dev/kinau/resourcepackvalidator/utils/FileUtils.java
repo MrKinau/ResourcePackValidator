@@ -65,7 +65,7 @@ public class FileUtils {
         return files;
     }
 
-    public static boolean fileExists(Directory directory, Namespace defaultNamespace, File rootDir, String relPath, String suffix, Predicate<String> isVanilla) {
+    public static File getFile(Directory directory, Namespace defaultNamespace, File rootDir, String relPath, String suffix, Predicate<String> isVanilla) {
         File filesDir = directory.getFile(defaultNamespace);
         File file = new File(filesDir, relPath.replace("/", File.separator) + suffix);
         if (relPath.contains(":")) {
@@ -77,9 +77,20 @@ public class FileUtils {
             }
         }
         if (!file.exists()) {
-            return isVanilla.test(relPath);
+            if (isVanilla.test(relPath))
+                return file;
+            return null;
         }
-        return true;
+        return file;
+    }
+
+
+    public static boolean fileExists(Directory directory, Namespace defaultNamespace, File rootDir, String relPath, String suffix, Predicate<String> isVanilla) {
+        return getFile(directory, defaultNamespace, rootDir, relPath, suffix, isVanilla) != null;
+    }
+
+    public static File getTextureFile(Namespace defaultNamespace, File rootDir, String relPath) {
+        return getFile(Directory.TEXTURES, defaultNamespace, rootDir, relPath, ".png", s -> false);
     }
 
     public static boolean textureExists(Namespace defaultNamespace, File rootDir, String relPath) {

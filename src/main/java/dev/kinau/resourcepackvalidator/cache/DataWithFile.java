@@ -1,6 +1,5 @@
-package dev.kinau.resourcepackvalidator.validator.context;
+package dev.kinau.resourcepackvalidator.cache;
 
-import com.google.gson.JsonElement;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +11,10 @@ import java.io.File;
 @Accessors(fluent = true)
 @Getter
 @EqualsAndHashCode
-public class JsonElementWithFile {
+public abstract class DataWithFile<Data> {
 
     private final File file;
-    private final JsonElement element;
+    private final Data element;
 
     @Override
     public String toString() {

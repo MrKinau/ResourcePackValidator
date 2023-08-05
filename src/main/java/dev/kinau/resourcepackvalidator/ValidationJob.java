@@ -1,5 +1,8 @@
 package dev.kinau.resourcepackvalidator;
 
+import dev.kinau.resourcepackvalidator.atlas.TextureAtlas;
+import dev.kinau.resourcepackvalidator.cache.NamespaceJsonCache;
+import dev.kinau.resourcepackvalidator.cache.NamespaceTextureCache;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.utils.Namespace;
 import dev.kinau.resourcepackvalidator.validator.ValidatorRegistry;
@@ -19,6 +22,8 @@ public class ValidationJob {
     private final ValidatorRegistry registry;
     private final List<Namespace> namespaces;
     private final Map<Namespace, NamespaceJsonCache> jsonCache = new HashMap<>();
+    private final Map<Namespace, NamespaceTextureCache> textureCache = new HashMap<>();
+    private final Map<Namespace, TextureAtlas> textureAtlas = new HashMap<>();
 
     public ValidationJob(File rootDir, ValidatorRegistry registry) {
         this.rootDir = rootDir;
@@ -26,6 +31,8 @@ public class ValidationJob {
         this.namespaces = loadNamespaces();
         namespaces.forEach(namespace -> {
             jsonCache.put(namespace, new NamespaceJsonCache(namespace));
+            textureCache.put(namespace, new NamespaceTextureCache(namespace));
+            textureAtlas.put(namespace, new TextureAtlas(namespace));
         });
     }
 

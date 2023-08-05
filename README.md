@@ -24,6 +24,9 @@ Checks if item overrides are correct and the referenced model exists.
 ### UnusedFileValidator
 Checks every file if it has been referenced in any json file. Most files need to be referenced somewhere, but this check may falsely detect files, which are in use. This will not flag for vanilla texture/model overrides. Files can be ignored with the `ignore` option using shell globs or regex.
 
+### TextureLimitMipLevelValidator
+Checks every texture file, that will be loaded into the texture atlas, if it limits the mipmap levels. If the mip level drops below 4, the game displays certain textures with lower quality (e.g. leaves).
+
 ## Commandline Arguments
 - `-help` Show all available commandline arguments
 - `--resourcepack <directory>`, `-rp <directory>` Specifies the path of the resource pack to validate. By default, it assumes the resource pack is located at `./resourcepack`
@@ -88,8 +91,12 @@ An example containing a custom ignore list looks like this:
 ```
 
 ## Ideas
-### Mipmap level dropping atlas validation
-Check if the mipmap level would drop with the current atlas configuration (would be nice to have, but quite complicated to implement)
+### Extend Unused Files Detection
+Extend detection, to find models which do not have an override or override an vanilla item. 
+Also check all textures if they are used by a model which already is unused?
+
+### Parent Validator
+Validate parent entries: Does the parent model exist
 
 ### Animated texture frames missing / too many sprite frames
 Checks if an animated texture has too many / too few frames.

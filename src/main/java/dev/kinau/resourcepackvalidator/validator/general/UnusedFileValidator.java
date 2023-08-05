@@ -3,13 +3,13 @@ package dev.kinau.resourcepackvalidator.validator.general;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
+import dev.kinau.resourcepackvalidator.cache.JsonElementWithFile;
 import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.utils.Tuple;
 import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.Validator;
 import dev.kinau.resourcepackvalidator.validator.context.EmptyValidationContext;
-import dev.kinau.resourcepackvalidator.validator.context.JsonElementWithFile;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
