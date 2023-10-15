@@ -31,25 +31,30 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
     }
 
     public ValidationResult.Status validate(ValidationJob job, Context context, Input data) {
-        if (shouldSkip(context))
-            return ValidationResult.Status.SKIPPED;
-        TestCase testCase = null;
-        boolean skipTestCase = skipTestCase(context);
-        if (!skipTestCase)
-            testCase = testSuite.getCase(getClass()).start();
-        ValidationResult<Output> result = isValid(job, context, data);
-        if (!skipTestCase)
-            testCase.stop();
-        if (result.status() != ValidationResult.Status.SUCCESS)
-            return result.status();
+        try {
+            if (shouldSkip(context))
+                return ValidationResult.Status.SKIPPED;
+            TestCase testCase = null;
+            boolean skipTestCase = skipTestCase(context);
+            if (!skipTestCase)
+                testCase = testSuite.getCase(getClass()).start();
+            ValidationResult<Output> result = isValid(job, context, data);
+            if (!skipTestCase)
+                testCase.stop();
+            if (result.status() != ValidationResult.Status.SUCCESS)
+                return result.status();
 
-        boolean anyChainedValidatorFailed = false;
-        for (Validator<Output, Context, ?> chainedValidator : chainedValidators) {
-            ValidationResult.Status status = chainedValidator.validate(job, context, result.result());
-            if (status == ValidationResult.Status.FAILED)
-                anyChainedValidatorFailed = true;
+            boolean anyChainedValidatorFailed = false;
+            for (Validator<Output, Context, ?> chainedValidator : chainedValidators) {
+                ValidationResult.Status status = chainedValidator.validate(job, context, result.result());
+                if (status == ValidationResult.Status.FAILED)
+                    anyChainedValidatorFailed = true;
+            }
+            return anyChainedValidatorFailed ? ValidationResult.Status.FAILED : ValidationResult.Status.SUCCESS;
+        } catch (Throwable ex) {
+            log.error("Error while validating Context (" + context.toString() + ") with data (" + data + ")", ex);
         }
-        return anyChainedValidatorFailed ? ValidationResult.Status.FAILED : ValidationResult.Status.SUCCESS;
+        return ValidationResult.Status.FAILED;
     }
 
     protected abstract ValidationResult<Output> isValid(ValidationJob job, Context context, Input data);

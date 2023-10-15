@@ -19,6 +19,6 @@ public class FileContext implements ValidationContext<File> {
 
     @Override
     public String toString() {
-        return value.getPath();
+        return getClass().getSimpleName() + "(" + namespace.getName() + "@" + value.getPath() + ")";
     }
 }

@@ -31,6 +31,8 @@ public class TextureMapper extends MappingValidator<ValidationJob, EmptyValidati
                 if (!job.textureAtlas().get(namespaceTexture.namespace()).isPartOfAtlas(element.file())) {
                     return;
                 }
+                // Corrupted texture already caught in ModelTextureExistsValidator
+                if (element.element() == null) return;
                 images.add(new FileContextWithData<>(namespaceTexture.namespace(), element.file(), element.element()));
             });
         });

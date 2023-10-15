@@ -5,4 +5,9 @@ public class EmptyValidationContext implements ValidationContext<Object> {
     public Object value() {
         return null;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }
