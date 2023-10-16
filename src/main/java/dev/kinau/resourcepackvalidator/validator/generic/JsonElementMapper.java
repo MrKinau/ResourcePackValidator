@@ -16,16 +16,19 @@ import java.util.Map;
 
 public class JsonElementMapper extends MappingValidator<ValidationJob, EmptyValidationContext, JsonElement> {
 
-    public JsonElementMapper(Map<String, JsonObject> config, TestSuite testSuite) {
+    private final FileUtils.Directory directory;
+
+    public JsonElementMapper(Map<String, JsonObject> config, TestSuite testSuite, FileUtils.Directory directory) {
         super(config, testSuite);
+        this.directory = directory;
     }
 
     @Override
     protected ValidationResult<Collection<FileContextWithData<JsonElement>>> isValid(ValidationJob job, EmptyValidationContext context, ValidationJob data) {
         List<FileContextWithData<JsonElement>> filesWithData = new ArrayList<>();
         job.jsonCache().values().forEach(namespaceJsonCache -> {
-            if (!namespaceJsonCache.cache().containsKey(FileUtils.Directory.MODELS)) return;
-            namespaceJsonCache.cache().get(FileUtils.Directory.MODELS).forEach(element -> {
+            if (!namespaceJsonCache.cache().containsKey(directory)) return;
+            namespaceJsonCache.cache().get(directory).forEach(element -> {
                 filesWithData.add(new FileContextWithData<>(namespaceJsonCache.namespace(), element.file(), element.element()));
             });
         });

@@ -25,7 +25,14 @@ Checks if item overrides are correct and the referenced model exists.
 Checks every file if it has been referenced in any json file. Most files need to be referenced somewhere, but this check may falsely detect files, which are in use. This will not flag for vanilla texture/model overrides. Files can be ignored with the `ignore` option using shell globs or regex.
 
 ### TextureLimitMipLevelValidator
-Checks every texture file, that will be loaded into the texture atlas, if it limits the mipmap levels. If the mip level drops below 4, the game displays certain textures with lower quality (e.g. leaves).
+Checks every PNG file, that will be loaded into the texture atlas, if it limits the mipmap levels. If the mip level drops below 4, the game displays certain textures with lower quality (e.g. leaves).
+
+### TextureIsNotCorruptedValidator
+Checks every PNG file, that is located in any resource pack directory, if the texture is an actual image.
+
+### FontTextureExistsValidator
+Checks if the texture file referenced in the font provider exists.
+
 
 ## Commandline Arguments
 - `-help` Show all available commandline arguments
@@ -65,6 +72,16 @@ This is the default config:
       "ignore": []
     },
     "UnusedFileValidator": {
+      "enabled": true,
+      "logLevel": "ERROR",
+      "ignore": []
+    },
+    "TextureIsNotCorruptedValidator": {
+      "enabled": true,
+      "logLevel": "ERROR",
+      "ignore": []
+    },
+    "FontTextureExistsValidator": {
       "enabled": true,
       "logLevel": "ERROR",
       "ignore": []

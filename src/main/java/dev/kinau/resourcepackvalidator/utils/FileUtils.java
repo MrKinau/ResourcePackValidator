@@ -67,6 +67,8 @@ public class FileUtils {
 
     public static File getFile(Directory directory, Namespace defaultNamespace, File rootDir, String relPath, String suffix, Predicate<String> isVanilla) {
         File filesDir = directory.getFile(defaultNamespace);
+        if (relPath.endsWith(suffix))
+            relPath = relPath.substring(0, relPath.length() - suffix.length());
         File file = new File(filesDir, relPath.replace("/", File.separator) + suffix);
         if (relPath.contains(":")) {
             String[] parts = relPath.split(":");
@@ -104,12 +106,16 @@ public class FileUtils {
     public static boolean isVanillaTexture(String texturePath) {
         if (texturePath.startsWith("minecraft:"))
             texturePath = texturePath.substring(10);
+        if (texturePath.endsWith(".png"))
+            texturePath = texturePath.substring(0, texturePath.length() - 4);
         return FileUtils.class.getClassLoader().getResource("vanilla/textures/" + texturePath + ".png") != null;
     }
 
     public static boolean isVanillaModel(String modelPath) {
         if (modelPath.startsWith("minecraft:"))
             modelPath = modelPath.substring(10);
+        if (modelPath.endsWith(".json"))
+            modelPath = modelPath.substring(0, modelPath.length() - 5);
         return FileUtils.class.getClassLoader().getResource("vanilla/models/" + modelPath + ".json") != null;
     }
 }

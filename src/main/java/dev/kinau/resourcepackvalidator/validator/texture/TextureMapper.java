@@ -28,11 +28,6 @@ public class TextureMapper extends MappingValidator<ValidationJob, EmptyValidati
         List<FileContextWithData<BufferedImage>> images = new ArrayList<>();
         job.textureCache().values().forEach(namespaceTexture -> {
             namespaceTexture.cache().get(FileUtils.Directory.TEXTURES).forEach(element -> {
-                if (!job.textureAtlas().get(namespaceTexture.namespace()).isPartOfAtlas(element.file())) {
-                    return;
-                }
-                // Corrupted texture already caught in ModelTextureExistsValidator
-                if (element.element() == null) return;
                 images.add(new FileContextWithData<>(namespaceTexture.namespace(), element.file(), element.element()));
             });
         });
