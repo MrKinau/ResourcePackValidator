@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -23,7 +24,6 @@ public class FileUtils {
         SHADERS("shaders", true),
         TEXTS("texts", true),
         TEXTURES("textures", false),
-
         SOUNDS("sounds.json", true);
 
         private final String path;
@@ -34,8 +34,8 @@ public class FileUtils {
             return new File(namespace, path);
         }
 
-        public File getFile(Namespace namespace) {
-            return new File(namespace.getFile(), path);
+        public File getFile(OverlayNamespace namespace) {
+            return new File(namespace.getAssetsDir(), path);
         }
 
         public File getFile(File rootDir, String namespace) {
@@ -47,8 +47,8 @@ public class FileUtils {
         return new File(getAssetsDir(rootDir), namespace);
     }
 
-    public static File getAssetsDir(File rootDir) {
-        return new File(rootDir, "assets");
+    public static File getAssetsDir(File rootOrOverlayDir) {
+        return new File(rootOrOverlayDir, "assets");
     }
 
     public static List<File> getFiles(File file) {
@@ -65,42 +65,61 @@ public class FileUtils {
         return files;
     }
 
-    public static File getFile(Directory directory, Namespace defaultNamespace, File rootDir, String relPath, String suffix, Predicate<String> isVanilla) {
+    public static File getFileInOverlay(OverlayNamespace namespace, File origin) {
+        String[] parts = origin.getAbsolutePath().split("assets" + File.separator + namespace.getNamespaceName() + File.separator);
+        if (parts.length <= 1) return null;
+        String end = String.join(File.separator, Arrays.copyOfRange(parts, 1, parts.length));
+        return new File(namespace.getAssetsDir(), end);
+    }
+
+    private static File getFile(Directory directory, OverlayNamespace defaultNamespace, String relPath, String suffix) {
         File filesDir = directory.getFile(defaultNamespace);
-        if (relPath.endsWith(suffix))
-            relPath = relPath.substring(0, relPath.length() - suffix.length());
+
         File file = new File(filesDir, relPath.replace("/", File.separator) + suffix);
         if (relPath.contains(":")) {
             String[] parts = relPath.split(":");
             if (parts.length > 1) {
                 String namespace = parts[0];
                 String path = parts[1];
-                file = new File(directory.getFile(rootDir, namespace), path.replace("/", File.separator) + suffix);
+                file = new File(directory.getFile(defaultNamespace.getOverlayOrRootDir(), namespace), path.replace("/", File.separator) + suffix);
             }
         }
+        return file;
+    }
+
+    public static File getFile(Directory directory, OverlayNamespace defaultNamespace, String relPath, String suffix, Predicate<String> isVanilla) {
+        if (relPath.endsWith(suffix))
+            relPath = relPath.substring(0, relPath.length() - suffix.length());
+        File file = getFile(directory, defaultNamespace, relPath, suffix);
         if (!file.exists()) {
-            if (isVanilla.test(relPath))
-                return file;
-            return null;
+            for (OverlayNamespace underlyingOverlay : defaultNamespace.getUnderlyingOverlays()) {
+                file = getFile(directory, underlyingOverlay, relPath, suffix);
+                if (file.exists()) break;
+            }
+            if (!file.exists()) {
+                if (isVanilla.test(relPath))
+                    return file;
+                return null;
+            }
         }
         return file;
     }
 
 
-    public static boolean fileExists(Directory directory, Namespace defaultNamespace, File rootDir, String relPath, String suffix, Predicate<String> isVanilla) {
-        return getFile(directory, defaultNamespace, rootDir, relPath, suffix, isVanilla) != null;
+    public static boolean fileExists(Directory directory, OverlayNamespace defaultNamespace, String relPath, String suffix, Predicate<String> isVanilla) {
+        return getFile(directory, defaultNamespace, relPath, suffix, isVanilla) != null;
     }
 
-    public static File getTextureFile(Namespace defaultNamespace, File rootDir, String relPath) {
-        return getFile(Directory.TEXTURES, defaultNamespace, rootDir, relPath, ".png", s -> false);
+    public static File getTextureFile(OverlayNamespace defaultNamespace, String relPath) {
+        return getFile(Directory.TEXTURES, defaultNamespace, relPath, ".png", s -> false);
     }
 
-    public static boolean textureExists(Namespace defaultNamespace, File rootDir, String relPath) {
-        return fileExists(Directory.TEXTURES, defaultNamespace, rootDir, relPath, ".png", FileUtils::isVanillaTexture);
+    public static boolean textureExists(OverlayNamespace defaultNamespace, String relPath) {
+        return fileExists(Directory.TEXTURES, defaultNamespace, relPath, ".png", FileUtils::isVanillaTexture);
     }
 
-    public static boolean modelExists(Namespace defaultNamespace, File rootDir, String relPath) {
-        return relPath.startsWith("builtin/") || fileExists(Directory.MODELS, defaultNamespace, rootDir, relPath, ".json", FileUtils::isVanillaModel);
+    public static boolean modelExists(OverlayNamespace defaultNamespace, String relPath) {
+        return relPath.startsWith("builtin/") || fileExists(Directory.MODELS, defaultNamespace, relPath, ".json", FileUtils::isVanillaModel);
     }
 
     public static boolean isVanillaTexture(String texturePath) {

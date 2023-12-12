@@ -1,6 +1,6 @@
 package dev.kinau.resourcepackvalidator.validator.context;
 
-import dev.kinau.resourcepackvalidator.utils.Namespace;
+import dev.kinau.resourcepackvalidator.utils.OverlayNamespace;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
@@ -14,7 +14,7 @@ public class FileContextWithData<T> extends FileContext {
 
     private final T data;
 
-    public FileContextWithData(Namespace namespace, File value, T data) {
+    public FileContextWithData(OverlayNamespace namespace, File value, T data) {
         super(namespace, value);
         this.data = data;
     }

@@ -20,7 +20,6 @@ public class TextureLimitMipLevelValidator extends FileContextValidator<Buffered
         super(config, testSuite);
     }
 
-
     @Override
     protected ValidationResult<Void> isValid(ValidationJob job, FileContext context, BufferedImage data) {
         int width = data.getWidth();

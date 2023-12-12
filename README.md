@@ -33,6 +33,9 @@ Checks every PNG file, that is located in any resource pack directory, if the te
 ### FontTextureExistsValidator
 Checks if the texture file referenced in the font provider exists.
 
+### ModelRequiresOverlayOverrideValidator
+Checks if a model json, which is present in the default pack, is also present in a specified overlay. This Validator requires some additional configuration to run and may be used to make sure every mode in a specified path is overridden in a specific overlay (e.g. to fix certain models in certain game versions).
+
 
 ## Commandline Arguments
 - `-help` Show all available commandline arguments
@@ -85,6 +88,23 @@ This is the default config:
       "enabled": true,
       "logLevel": "ERROR",
       "ignore": []
+    },
+    "ModelRequiresOverlayOverrideValidator": {
+      "logLevel": "ERROR",
+      "required": [
+        {
+          "path": "glob:**/minecraft/models/custom/general/cosmetics/back/**",
+          "overlays": [
+            "1_20_2"
+          ]
+        },
+        {
+          "path": "glob:**/minecraft/models/custom/general/cosmetics/npc/back/**",
+          "overlays": [
+            "1_20_2"
+          ]
+        }
+      ]
     }
   }
 }

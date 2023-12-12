@@ -2,7 +2,7 @@ package dev.kinau.resourcepackvalidator.atlas;
 
 import com.google.gson.Gson;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
-import dev.kinau.resourcepackvalidator.utils.Namespace;
+import dev.kinau.resourcepackvalidator.utils.OverlayNamespace;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -19,10 +19,10 @@ import java.util.List;
 @Slf4j
 public class TextureAtlas {
 
-    private final Namespace namespace;
+    private final OverlayNamespace namespace;
     private AtlasData data;
 
-    public TextureAtlas(Namespace namespace) {
+    public TextureAtlas(OverlayNamespace namespace) {
         this.namespace = namespace;
         try {
             File atlasDir = FileUtils.Directory.ATLASES.getFile(namespace);
@@ -32,20 +32,20 @@ public class TextureAtlas {
             data.sources().add(new AtlasSource("directory", "item", "", null, null));
             data.sources().add(new AtlasSource("directory", "block", "", null, null));
         } catch (Exception ex) {
-            log.error("Could not load blocks atlas for " + namespace.getName() + " at " + namespace.getFile().getPath(), ex);
+            log.error("Could not load blocks atlas for " + namespace.getName() + " at " + namespace.getAssetsDir().getPath(), ex);
         }
     }
 
     public boolean isPartOfAtlas(File file) {
-        if (data == null) return true;
+        if (data == null) return false;
         return data.sources().stream().anyMatch(atlasSource -> atlasSource.isInAtlas(namespace, file));
     }
 
     @Getter
     @Accessors(fluent = true)
     @ToString
-    public class AtlasData {
-        private List<AtlasSource> sources = new ArrayList<>();
+    public static class AtlasData {
+        private final List<AtlasSource> sources = new ArrayList<>();
     }
 
     //TODO: Add "filter" and "unstitch" type and use inherited classes
@@ -53,7 +53,7 @@ public class TextureAtlas {
     @Accessors(fluent = true)
     @ToString
     @AllArgsConstructor
-    public class AtlasSource {
+    public static class AtlasSource {
         private String type;
 
         private String source;
@@ -62,9 +62,9 @@ public class TextureAtlas {
         private String resource;
         private String sprite;
 
-        public boolean isInAtlas(Namespace namespace, File file) {
+        public boolean isInAtlas(OverlayNamespace namespace, File file) {
             String path = file.getPath();
-            String namespacePath = namespace.getFile().getPath();
+            String namespacePath = namespace.getAssetsDir().getPath();
             path = path.replace(namespacePath, "").replace("/textures", "");
             if (path.startsWith("/"))
                 path = path.substring(1);

@@ -47,7 +47,7 @@ public class FontTextureExistsValidator extends FileContextValidator<JsonElement
             return failedError();
 
         for (Map.Entry<JsonObject, String> kv : textureData.entrySet()) {
-            if (!FileUtils.textureExists(context.namespace(), job.rootDir(), kv.getValue())) {
+            if (!FileUtils.textureExists(context.namespace(), kv.getValue())) {
                 failed = true;
                 failedError("Language has linked texture that is not present ({}) at {}", kv.getKey() + " » " + kv.getValue(), context.value().getPath());
             }

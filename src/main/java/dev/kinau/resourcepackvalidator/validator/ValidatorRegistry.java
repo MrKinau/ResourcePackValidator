@@ -14,6 +14,7 @@ import dev.kinau.resourcepackvalidator.validator.generic.JsonElementMapper;
 import dev.kinau.resourcepackvalidator.validator.generic.NamespaceCollectionValidator;
 import dev.kinau.resourcepackvalidator.validator.models.ModelHasAnyTextureValidator;
 import dev.kinau.resourcepackvalidator.validator.models.ModelIsJsonObjectValidator;
+import dev.kinau.resourcepackvalidator.validator.models.ModelRequiresOverlayOverrideValidator;
 import dev.kinau.resourcepackvalidator.validator.models.ModelTexturesExistsValidator;
 import dev.kinau.resourcepackvalidator.validator.models.override.ModelHasAnyOverrideValidator;
 import dev.kinau.resourcepackvalidator.validator.models.override.ModelOverridesExistsValidator;
@@ -51,7 +52,8 @@ public class ValidatorRegistry {
                                 .then(new ModelHasAnyTextureValidator(configData, testSuite)
                                         .then(new ModelTexturesExistsValidator(configData, testSuite)))
                                 .then(new ModelHasAnyOverrideValidator(configData, testSuite)
-                                        .then(new ModelOverridesExistsValidator(configData, testSuite)))))
+                                        .then(new ModelOverridesExistsValidator(configData, testSuite)))
+                                .then(new ModelRequiresOverlayOverrideValidator(configData, testSuite))))
                 .then(new JsonElementMapper(configData, testSuite, FileUtils.Directory.FONT)
                         .thenForEachElement(new FontTextureExistsValidator(configData, testSuite)))
                 .then(new TextureMapper(configData, testSuite)

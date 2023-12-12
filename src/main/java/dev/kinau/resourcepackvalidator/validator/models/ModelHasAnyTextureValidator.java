@@ -42,7 +42,7 @@ public class ModelHasAnyTextureValidator extends FileContextValidator<JsonObject
     private boolean hasParent(FileContext context, ValidationJob job, JsonObject obj) {
         if (obj.has("parent") && obj.get("parent").isJsonPrimitive() && obj.getAsJsonPrimitive("parent").isString()) {
             String parent = obj.getAsJsonPrimitive("parent").getAsString();
-            return FileUtils.modelExists(context.namespace(), job.rootDir(), parent);
+            return FileUtils.modelExists(context.namespace(), parent);
         }
         return false;
     }

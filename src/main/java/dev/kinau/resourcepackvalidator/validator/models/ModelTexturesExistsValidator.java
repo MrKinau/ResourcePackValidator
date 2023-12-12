@@ -42,7 +42,7 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
                 String referenceKey = kv.getValue().substring(1);
                 if (textureData.containsKey(referenceKey)) continue;
             }
-            if (!FileUtils.textureExists(context.namespace(), job.rootDir(), kv.getValue())) {
+            if (!FileUtils.textureExists(context.namespace(), kv.getValue())) {
                 failed = true;
                 failedError("Model has linked texture that is not present ({}) at {}", kv.getKey() + " » " + kv.getValue(), context.value().getPath());
             }

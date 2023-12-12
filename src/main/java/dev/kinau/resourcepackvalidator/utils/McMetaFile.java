@@ -6,15 +6,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import java.io.File;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Getter
 @EqualsAndHashCode
 @ToString
-public class Namespace {
+public class McMetaFile {
     private final File file;
-
-    public String getName() {
-        return file.getName();
-    }
+    private final List<Overlay> overlays;
 }
