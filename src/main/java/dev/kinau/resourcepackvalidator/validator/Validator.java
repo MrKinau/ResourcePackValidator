@@ -63,8 +63,12 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
         return Level.ERROR;
     }
 
+    protected boolean defaultEnabled() {
+        return true;
+    }
+
     protected boolean shouldSkip(Context context) {
-        return !configValue("enabled", new JsonPrimitive(true)).getAsBoolean();
+        return !configValue("enabled", new JsonPrimitive(defaultEnabled())).getAsBoolean();
     }
 
     protected boolean skipTestCase(Context context) {
@@ -72,7 +76,7 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
     }
 
     final protected JsonObject config() {
-        return config.getOrDefault(getClass().getSimpleName(), new JsonObject());
+        return config.computeIfAbsent(getClass().getSimpleName(), s -> new JsonObject());
     }
 
     final protected <T extends JsonElement> T configValue(String key, T defaultValue) {

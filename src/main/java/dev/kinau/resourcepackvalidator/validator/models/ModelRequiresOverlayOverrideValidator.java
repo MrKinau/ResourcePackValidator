@@ -23,13 +23,15 @@ import java.util.Optional;
 
 public class ModelRequiresOverlayOverrideValidator extends FileContextValidator<JsonObject, JsonObject> {
 
-    private List<Requirement> requirements = new ArrayList<>();
+    private final List<Requirement> requirements = new ArrayList<>();
 
     public ModelRequiresOverlayOverrideValidator(Map<String, JsonObject> config, TestSuite testSuite) {
         super(config, testSuite);
-        JsonObject data = config.get(getClass().getSimpleName());
-        if (data == null) return;
-        JsonArray required = data.getAsJsonArray("required");
+        loadRequirements();
+    }
+
+    private void loadRequirements() {
+        JsonArray required = configValue("required", new JsonArray());
         required.forEach(element -> {
             if (!element.isJsonObject()) return;
             if (element.getAsJsonObject().has("path") && element.getAsJsonObject().has("overlays")) {
@@ -38,6 +40,11 @@ public class ModelRequiresOverlayOverrideValidator extends FileContextValidator<
                 requirements.add(new Requirement(pathMatcher, overlays));
             }
         });
+    }
+
+    @Override
+    protected boolean defaultEnabled() {
+        return false;
     }
 
     @Override

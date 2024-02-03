@@ -28,8 +28,10 @@ public class ModelHasAnyTextureValidator extends FileContextValidator<JsonObject
         if (modelObj.getAsJsonObject("textures").isEmpty())
             return failOrSkip(context, job, modelObj, "No textures specified in model (textures object is empty) at {}", context.value().getPath());
         JsonObject textures = modelObj.getAsJsonObject("textures");
-        if (textures.keySet().stream().allMatch(s -> s.equals("particle")))
-            return failOrSkip(context, job, modelObj, "No textures specified in model (textures object only contains particles, although this maybe works, it's kinda illegal) at {}", context.value().getPath());
+        if (textures.keySet().stream().allMatch(s -> s.equals("particle"))) {
+            ValidationResult<JsonObject> result = failOrIgnore(context, job, modelObj, "No textures specified in model (textures object only contains particles, although this maybe works, it's kinda illegal) at {}", context.value().getPath());
+            if (result != null) return result;
+        }
         return success(modelObj.getAsJsonObject("textures"));
     }
 
@@ -39,10 +41,16 @@ public class ModelHasAnyTextureValidator extends FileContextValidator<JsonObject
         return failedError(warning, args);
     }
 
+    private ValidationResult<JsonObject> failOrIgnore(FileContext context, ValidationJob job, JsonObject data, String warning, Object... args) {
+        if (!hasParent(context, job, data))
+            return failedError(warning, args);
+        return null;
+    }
+
     private boolean hasParent(FileContext context, ValidationJob job, JsonObject obj) {
         if (obj.has("parent") && obj.get("parent").isJsonPrimitive() && obj.getAsJsonPrimitive("parent").isString()) {
             String parent = obj.getAsJsonPrimitive("parent").getAsString();
-            return FileUtils.modelExists(context.namespace(), parent);
+            return FileUtils.modelExists(context.namespace(), parent, job.assetDictionary());
         }
         return false;
     }

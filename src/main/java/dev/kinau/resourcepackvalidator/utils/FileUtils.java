@@ -1,14 +1,20 @@
 package dev.kinau.resourcepackvalidator.utils;
 
+import dev.kinau.resourcepackvalidator.cache.AssetDictionary;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class FileUtils {
 
@@ -114,27 +120,42 @@ public class FileUtils {
         return getFile(Directory.TEXTURES, defaultNamespace, relPath, ".png", s -> false);
     }
 
-    public static boolean textureExists(OverlayNamespace defaultNamespace, String relPath) {
-        return fileExists(Directory.TEXTURES, defaultNamespace, relPath, ".png", FileUtils::isVanillaTexture);
+    public static boolean textureExists(OverlayNamespace defaultNamespace, String relPath, AssetDictionary assetDictionary) {
+        return fileExists(Directory.TEXTURES, defaultNamespace, relPath, ".png", s -> FileUtils.isVanillaTexture(s, assetDictionary));
     }
 
-    public static boolean modelExists(OverlayNamespace defaultNamespace, String relPath) {
-        return relPath.startsWith("builtin/") || fileExists(Directory.MODELS, defaultNamespace, relPath, ".json", FileUtils::isVanillaModel);
+    public static boolean modelExists(OverlayNamespace defaultNamespace, String relPath, AssetDictionary assetDictionary) {
+        return relPath.startsWith("builtin/") || fileExists(Directory.MODELS, defaultNamespace, relPath, ".json", s -> FileUtils.isVanillaModel(s, assetDictionary));
     }
 
-    public static boolean isVanillaTexture(String texturePath) {
+    public static boolean isVanillaTexture(String texturePath, AssetDictionary assetDictionary) {
         if (texturePath.startsWith("minecraft:"))
             texturePath = texturePath.substring(10);
-        if (texturePath.endsWith(".png"))
-            texturePath = texturePath.substring(0, texturePath.length() - 4);
-        return FileUtils.class.getClassLoader().getResource("vanilla/textures/" + texturePath + ".png") != null;
+        if (!texturePath.endsWith(".png"))
+            texturePath += ".png";
+        texturePath = "minecraft/" + Directory.TEXTURES.getPath() + "/" + texturePath;
+        return assetDictionary.contains(texturePath);
     }
 
-    public static boolean isVanillaModel(String modelPath) {
+    public static boolean isVanillaModel(String modelPath, AssetDictionary assetDictionary) {
         if (modelPath.startsWith("minecraft:"))
             modelPath = modelPath.substring(10);
-        if (modelPath.endsWith(".json"))
-            modelPath = modelPath.substring(0, modelPath.length() - 5);
-        return FileUtils.class.getClassLoader().getResource("vanilla/models/" + modelPath + ".json") != null;
+        if (!modelPath.endsWith(".json"))
+            modelPath += ".json";
+        modelPath = "minecraft/" + Directory.MODELS.getPath() + "/" + modelPath;
+        return assetDictionary.contains(modelPath);
+    }
+
+    public static void deleteDirectory(File directory) throws IOException {
+        if (!directory.exists()) return;
+        if (!directory.isDirectory()) {
+            Files.delete(directory.toPath());
+            return;
+        }
+        try (Stream<Path> fileTree = Files.walk(directory.toPath())){
+            fileTree.sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        }
     }
 }

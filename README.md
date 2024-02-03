@@ -33,13 +33,16 @@ Checks every PNG file, that is located in any resource pack directory, if the te
 ### FontTextureExistsValidator
 Checks if the texture file referenced in the font provider exists.
 
+### FontCharacterUsageValidator
+Checks if a font file defines a character multiple times, which overrides the character.
+
 ### ModelRequiresOverlayOverrideValidator
-Checks if a model json, which is present in the default pack, is also present in a specified overlay. This Validator requires some additional configuration to run and may be used to make sure every mode in a specified path is overridden in a specific overlay (e.g. to fix certain models in certain game versions).
+Checks if a model json, which is present in the default pack, is also present in a specified overlay. This Validator requires some additional configuration to run and may be used to make sure every model in a specified path is overridden in a specific overlay (e.g. to fix certain models in certain game versions).
 
 
 ## Commandline Arguments
 - `-help` Show all available commandline arguments
-- `--resourcepack <directory>`, `-rp <directory>` Specifies the path of the resource pack to validate. By default, it assumes the resource pack is located at `./resourcepack`
+- `--resourcepack <directory or zip>`, `-rp <directory or zip>` Specifies the path of the resource pack to validate. By default, it assumes the resource pack is located at `./resourcepack` or `./resourcepack.zip` (if `./resourcepack` does not exist)
 - `--verbose`, `-v` Enables verbose log output
 - `-config` Specifies the path to the config file. By default, it assumes it is located at `./config.json`
 - `-report <file>` Specifies the path the report file. By default, it does not generate a XML report
@@ -89,28 +92,25 @@ This is the default config:
       "logLevel": "ERROR",
       "ignore": []
     },
-    "ModelRequiresOverlayOverrideValidator": {
+    "FontCharacterUsageValidator": {
+      "enabled": true,
       "logLevel": "ERROR",
-      "required": [
-        {
-          "path": "glob:**/minecraft/models/custom/general/cosmetics/back/**",
-          "overlays": [
-            "1_20_2"
-          ]
-        },
-        {
-          "path": "glob:**/minecraft/models/custom/general/cosmetics/npc/back/**",
-          "overlays": [
-            "1_20_2"
-          ]
-        }
-      ]
+      "ignore": []
+    },
+    "ModelRequiresOverlayOverrideValidator": {
+      "enabled": false,
+      "logLevel": "ERROR",
+      "required": []
     }
   }
 }
 ```
 Default values do not need to be specified in the config.
-An example containing a custom ignore list looks like this:
+
+### Ignore List
+Every Validator supports ignore lists and will skip every ignored file.
+Ignore lists can contain regex and shell glob matchers as seen in the example.
+
 ```json
 {
   "validators": {
@@ -127,6 +127,26 @@ An example containing a custom ignore list looks like this:
 }
 ```
 
+### Additional Data
+Some validators may require additional data in order to work.
+
+#### ModelRequiresOverlayOverrideValidator
+```json
+{
+  "validators": {
+    "ModelRequiresOverlayOverrideValidator": {
+      "enabled": true,
+      "required": [
+        {
+          "path": "glob:**/cosmetics/back/**",
+          "overlays": [ "1_20_2" ]
+        }
+      ]
+    }
+  }
+}
+```
+
 ## Ideas
 ### Extend Unused Files Detection
 Extend detection, to find models which do not have an override or override an vanilla item. 
@@ -137,6 +157,9 @@ Validate parent entries: Does the parent model exist
 
 ### Animated texture frames missing / too many sprite frames
 Checks if an animated texture has too many / too few frames.
+
+### Font Validation
+Codepoint 'e100' declared multiple times in minecraft:textures/customfont/charset/title.png
 
 ## Discord
 To follow the project, get support or request features or bugs you can join my Discord: https://discord.gg/xHpCDYf

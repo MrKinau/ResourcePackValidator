@@ -40,6 +40,12 @@
             <artifactId>guava</artifactId>
             <version>32.0.0-jre</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.11.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

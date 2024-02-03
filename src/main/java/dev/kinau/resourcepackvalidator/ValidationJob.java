@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.kinau.resourcepackvalidator.atlas.TextureAtlas;
+import dev.kinau.resourcepackvalidator.cache.AssetDictionary;
 import dev.kinau.resourcepackvalidator.cache.NamespaceJsonCache;
 import dev.kinau.resourcepackvalidator.cache.NamespaceTextureCache;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
@@ -12,6 +13,7 @@ import dev.kinau.resourcepackvalidator.utils.McMetaFile;
 import dev.kinau.resourcepackvalidator.utils.Overlay;
 import dev.kinau.resourcepackvalidator.utils.OverlayNamespace;
 import dev.kinau.resourcepackvalidator.validator.ValidatorRegistry;
+import dev.kinau.resourcepackvalidator.validator.data.font.FontProviderFactory;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,8 @@ public class ValidationJob {
     private final Map<OverlayNamespace, NamespaceJsonCache> jsonCache = new HashMap<>();
     private final Map<OverlayNamespace, NamespaceTextureCache> textureCache = new HashMap<>();
     private final Map<OverlayNamespace, TextureAtlas> textureAtlas = new HashMap<>();
+    private final AssetDictionary assetDictionary;
+    private final FontProviderFactory fontProviderFactory;
 
     public ValidationJob(File rootDir, ValidatorRegistry registry) {
         this.rootDir = rootDir;
@@ -46,6 +50,8 @@ public class ValidationJob {
             textureCache.put(namespace, new NamespaceTextureCache(namespace));
             textureAtlas.put(namespace, new TextureAtlas(namespace));
         });
+        this.assetDictionary = new AssetDictionary().load();
+        this.fontProviderFactory = new FontProviderFactory();
     }
 
     private List<OverlayNamespace> getNamespaces(Overlay overlay) {

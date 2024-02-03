@@ -41,13 +41,13 @@ public class UnusedFileValidator extends Validator<ValidationJob, EmptyValidatio
                         if (parts.length < 2)
                             return true;
                         String relPathModel = parts[1].substring(0, parts[1].length() - 5);
-                        return !FileUtils.isVanillaModel(relPathModel);
+                        return !FileUtils.isVanillaModel(relPathModel, job.assetDictionary());
                     } else if (file.getPath().endsWith(".png")) {
                         String[] parts = file.getPath().split(File.separatorChar + "minecraft" + File.separatorChar + "textures" + File.separatorChar);
                         if (parts.length < 2)
                             return true;
                         String relPathModel = parts[1].substring(0, parts[1].length() - 4);
-                        return !FileUtils.isVanillaTexture(relPathModel);
+                        return !FileUtils.isVanillaTexture(relPathModel, job.assetDictionary());
                     }
                     return true;
                 })

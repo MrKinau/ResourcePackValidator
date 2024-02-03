@@ -1,10 +1,14 @@
 package dev.kinau.resourcepackvalidator;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import dev.kinau.resourcepackvalidator.cache.AssetDictionary;
 import dev.kinau.resourcepackvalidator.config.Config;
 import dev.kinau.resourcepackvalidator.report.ReportGenerator;
 import dev.kinau.resourcepackvalidator.report.TestCase;
 import dev.kinau.resourcepackvalidator.report.TestSuite;
+import dev.kinau.resourcepackvalidator.utils.FileUtils;
+import dev.kinau.resourcepackvalidator.utils.ZipUtils;
 import dev.kinau.resourcepackvalidator.validator.ValidatorRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
@@ -12,6 +16,7 @@ import org.apache.commons.cli.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.logging.LogManager;
 
 @Slf4j
@@ -19,6 +24,7 @@ public class ResourcePackValidator {
 
     private final TestSuite testSuite;
     private CommandLine commandLine;
+    private File cleanupOnShutdown;
 
     public static void main(String[] args) {
         new ResourcePackValidator(args);
@@ -39,8 +45,11 @@ public class ResourcePackValidator {
         if (commandLine.hasOption("verbose"))
             adjustLogLevel();
 
+        shouldCreateAssetCache();
+
         Config config = initConfig();
 
+        registerShutdownHook();
         File rootDir = getRootDirectory();
         if (rootDir == null) return;
 
@@ -79,6 +88,19 @@ public class ResourcePackValidator {
         }
     }
 
+    private void shouldCreateAssetCache() {
+        if (commandLine.hasOption("createAssetCache")) {
+            JsonObject assets = new AssetDictionary().createAssets(new File(commandLine.getOptionValue("createAssetCache")));
+            File assetsFile = new File("vanillaassets.json");
+            try {
+                Files.writeString(assetsFile.toPath(), assets.toString());
+            } catch (IOException ex) {
+                log.error("Could not saved " + assetsFile.getPath(), ex);
+            }
+            System.exit(0);
+        }
+    }
+
     private CommandLine initCLI(String[] args) throws ParseException {
         Options options = new Options();
         options.addOption("help", false, "prints the help");
@@ -86,6 +108,7 @@ public class ResourcePackValidator {
         options.addOption("v", "verbose", false, "sets the log level to DEBUG");
         options.addOption("config", true, "specifies the path of the configuration file");
         options.addOption("report", true, "specifies the path for the generated report file");
+        options.addOption("createAssetCache", true, "creates a new vanilla asset cache from the given directory");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine commandLine = parser.parse(options, args);
@@ -112,16 +135,46 @@ public class ResourcePackValidator {
         return new Config();
     }
 
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                if (cleanupOnShutdown != null)
+                    FileUtils.deleteDirectory(cleanupOnShutdown);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }));
+    }
+
     private File getRootDirectory() {
         TestCase rootDirectoryValid = testSuite.getCase("Root directory valid").start();
         File rootDir = new File("resourcepack");
-        if (commandLine.hasOption("rp"))
-            rootDir = new File(commandLine.getOptionValue("rp"));
+        if (commandLine.hasOption("rp")) {
+            String rpOption = commandLine.getOptionValue("rp");
+            rootDir = new File(rpOption);
+        } else if (!rootDir.exists()) {
+            rootDir = new File("resourcepack.zip");
+        }
 
         if (!rootDir.exists()) {
             rootDirectoryValid.addError("Could not find directory " + rootDir.getAbsolutePath());
             rootDirectoryValid.stop();
             return null;
+        }
+
+        if (rootDir.getName().endsWith(".zip")) {
+            try {
+                File tmpDirectory = new File(rootDir.getName().substring(0, rootDir.getName().length() - 4));
+                log.debug("Using zip resourcepack: extracting files to {}", tmpDirectory.getPath());
+                FileUtils.deleteDirectory(tmpDirectory);
+                if (tmpDirectory.mkdir()) {
+                    ZipUtils.extractFiles(rootDir, tmpDirectory);
+                    rootDir = tmpDirectory;
+                    this.cleanupOnShutdown = tmpDirectory;
+                }
+            } catch (IOException ex) {
+                log.error("Could not create tmp directory to extract resourcepack", ex);
+            }
         }
 
         if (!rootDir.isDirectory()) {

@@ -25,7 +25,7 @@ public abstract class MappingValidator<Input, Context extends ValidationContext<
         super(config, testSuite);
     }
 
-    public <V> Validator<Input, Context, Collection<FileContextWithData<Output>>> thenForEachElement(Validator<Output, FileContext, V> next) {
+    public <V> MappingValidator<Input, Context, Output> thenForEachElement(Validator<Output, FileContext, V> next) {
         this.chainedValidators.add(next);
         return this;
     }

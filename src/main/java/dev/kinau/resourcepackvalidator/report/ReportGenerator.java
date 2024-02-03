@@ -1,6 +1,7 @@
 package dev.kinau.resourcepackvalidator.report;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -52,8 +53,8 @@ public class ReportGenerator {
     private Element createTestCaseElement(Document doc, TestCase testCase) {
         Element element = doc.createElement("testcase");
         // Those are the attributes displayed in GitLab
-        element.setAttribute("name", testCase.name());
-        element.setAttribute("time", String.valueOf(testCase.time() / 1000.0));
+        element.setAttribute("name", StringEscapeUtils.escapeXml11(testCase.name()));
+        element.setAttribute("time", StringEscapeUtils.escapeXml11(String.valueOf(testCase.time() / 1000.0)));
         element.setAttribute("classname", "Resource Pack Validator");
         if (testCase.fails() > 0)
             element.setAttribute("file", "Failed " + testCase.fails() + " time" + (testCase.fails() > 1 ? "s" : ""));
@@ -66,7 +67,7 @@ public class ReportGenerator {
     private Element createFailureElement(Document doc, Failure failure) {
         Element element = doc.createElement("failure");
         if (failure.data() != null)
-            element.setTextContent(failure.data());
+            element.setTextContent(StringEscapeUtils.escapeXml11(failure.data()));
         return element;
     }
 

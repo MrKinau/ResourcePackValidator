@@ -40,7 +40,7 @@ public class ModelOverridesExistsValidator extends FileContextValidator<JsonArra
             }
             String model = override.getAsJsonPrimitive("model").getAsString();
 
-            if (!FileUtils.modelExists(context.namespace(), model)) {
+            if (!FileUtils.modelExists(context.namespace(), model, job.assetDictionary())) {
                 failed = true;
                 failedError("Model in override {} does not exist at {}", override, context.value().getPath());
             }

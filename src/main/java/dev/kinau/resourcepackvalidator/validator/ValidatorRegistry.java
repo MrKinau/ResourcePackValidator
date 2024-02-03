@@ -6,10 +6,17 @@ import dev.kinau.resourcepackvalidator.config.Config;
 import dev.kinau.resourcepackvalidator.report.TestSuite;
 import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.validator.context.EmptyValidationContext;
+import dev.kinau.resourcepackvalidator.validator.context.FileContext;
+import dev.kinau.resourcepackvalidator.validator.context.FileContextWithData;
 import dev.kinau.resourcepackvalidator.validator.context.ValidationContext;
+import dev.kinau.resourcepackvalidator.validator.data.font.BitmapFontProvider;
+import dev.kinau.resourcepackvalidator.validator.data.font.FontProvider;
+import dev.kinau.resourcepackvalidator.validator.font.FontCharacterUsageValidator;
+import dev.kinau.resourcepackvalidator.validator.font.FontProviderMapper;
 import dev.kinau.resourcepackvalidator.validator.font.FontTextureExistsValidator;
 import dev.kinau.resourcepackvalidator.validator.general.AnyNamespacePresentValidator;
 import dev.kinau.resourcepackvalidator.validator.general.UnusedFileValidator;
+import dev.kinau.resourcepackvalidator.validator.generic.FilterValidator;
 import dev.kinau.resourcepackvalidator.validator.generic.JsonElementMapper;
 import dev.kinau.resourcepackvalidator.validator.generic.NamespaceCollectionValidator;
 import dev.kinau.resourcepackvalidator.validator.models.ModelHasAnyTextureValidator;
@@ -23,6 +30,7 @@ import dev.kinau.resourcepackvalidator.validator.texture.TextureIsNotCorruptedVa
 import dev.kinau.resourcepackvalidator.validator.texture.TextureLimitMipLevelValidator;
 import dev.kinau.resourcepackvalidator.validator.texture.TextureMapper;
 
+import java.awt.image.BufferedImage;
 import java.util.Map;
 
 public class ValidatorRegistry {
@@ -44,8 +52,7 @@ public class ValidatorRegistry {
             }
         };
 
-        rootValidator
-                .then(new NamespaceCollectionValidator(configData, testSuite)
+        rootValidator.then(new NamespaceCollectionValidator(configData, testSuite)
                         .then(new AnyNamespacePresentValidator(configData, testSuite)))
                 .then(new JsonElementMapper(configData, testSuite, FileUtils.Directory.MODELS)
                         .thenForEachElement(new ModelIsJsonObjectValidator(configData, testSuite)
@@ -55,10 +62,13 @@ public class ValidatorRegistry {
                                         .then(new ModelOverridesExistsValidator(configData, testSuite)))
                                 .then(new ModelRequiresOverlayOverrideValidator(configData, testSuite))))
                 .then(new JsonElementMapper(configData, testSuite, FileUtils.Directory.FONT)
-                        .thenForEachElement(new FontTextureExistsValidator(configData, testSuite)))
+                        .thenForEachElement(new FontProviderMapper(configData, testSuite)
+                                .thenForEachElement(new FilterValidator<FontProvider, FileContext, BitmapFontProvider>(configData, testSuite, this::isBitmapFontProvider)
+                                        .then(new FontTextureExistsValidator(configData, testSuite)))
+                                .thenForEachElement(new FontCharacterUsageValidator(configData, testSuite))))
                 .then(new TextureMapper(configData, testSuite)
                         .thenForEachElement(new TextureIsNotCorruptedValidator(configData, testSuite)
-                                .then(new TextureFilterMapper(configData, testSuite, (job, context) -> job.textureAtlas().get(context.namespace()).isPartOfAtlas(context.value()))
+                                .then(new TextureFilterMapper(configData, testSuite, this::isPartOfAtlas)
                                         .then(new TextureLimitMipLevelValidator(configData, testSuite)))))
                 .then(new UnusedFileValidator(configData, testSuite));
     }
@@ -66,6 +76,16 @@ public class ValidatorRegistry {
     public boolean validate(ValidationJob job) {
         ValidationResult.Status status = rootValidator.validate(job, ValidationContext.EMPTY, job);
         return status != ValidationResult.Status.FAILED;
+    }
+
+    private BitmapFontProvider isBitmapFontProvider(ValidationJob job, FontProvider fontProvider) {
+        if (fontProvider instanceof BitmapFontProvider bitmapFontProvider)
+            return bitmapFontProvider;
+        return null;
+    }
+
+    private boolean isPartOfAtlas(ValidationJob job, FileContextWithData<BufferedImage> context) {
+        return job.textureAtlas().get(context.namespace()).isPartOfAtlas(context.value());
     }
 
 }
