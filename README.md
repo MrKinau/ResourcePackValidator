@@ -149,7 +149,7 @@ Some validators may require additional data in order to work.
 
 ## Ideas
 ### Extend Unused Files Detection
-Extend detection, to find models which do not have an override or override an vanilla item. 
+Extend detection, to find models which do not have an override or override a vanilla item. 
 Also check all textures if they are used by a model which already is unused?
 
 ### Parent Validator
@@ -157,9 +157,6 @@ Validate parent entries: Does the parent model exist
 
 ### Animated texture frames missing / too many sprite frames
 Checks if an animated texture has too many / too few frames.
-
-### Font Validation
-Codepoint 'e100' declared multiple times in minecraft:textures/customfont/charset/title.png
 
 ## Discord
 To follow the project, get support or request features or bugs you can join my Discord: https://discord.gg/xHpCDYf
