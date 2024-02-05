@@ -9,5 +9,3 @@ inputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - '-rp ${{ inputs.resourcepack}}'
