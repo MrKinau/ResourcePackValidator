@@ -6,6 +6,15 @@ inputs:
     description: 'Path to the resourcepack (zip or folder)'
     required: false
     default: 'resourcepack'
+  config:
+    description: 'Path to the Resource Pack Validator config file'
+    required: false
+    default: 'config.json'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'docker://ghcr.io/mrkinau/rpvalidator:master'
+  args:
+    - '-rp'
+    - '${{ inputs.resourcepack}}'
+    - '-config'
+    - '${{ inputs.config }}'
