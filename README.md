@@ -76,6 +76,11 @@ validate-pack:
       junit:
         - "report.xml"
 ```
+<details>
+  <summary>Screenshot</summary>
+  <img src="https://github.com/MrKinau/ResourcePackValidator/assets/13185260/20bf3697-76b3-42e5-8912-9ac39bb43dd9" />
+</details>
+
 ## Validators
 All currently implemented Validators can be found [here](doc/VALIDATORS.md).
 
