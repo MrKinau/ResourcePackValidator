@@ -39,13 +39,13 @@ In order to use the Gitlab CI, you'll need to create a file inside your reposito
 stages:
   - validate
 
-validate-pack:
+validate-resource-pack:
   image:
     name: ghcr.io/mrkinau/resourcepackvalidator:master
     entrypoint: [""]
   stage: validate
   script:
-    - resourcepackvalidator -rp resourcepack -config validator.json
+    - resourcepackvalidator -rp resourcepack -config config.json
 ```
 You can change `resourcepack` with the path to your resourcepack directory or zip inside the repository.
 
@@ -56,15 +56,13 @@ Additionally, you can add a JUnit like test report, which will be visible in Git
 stages:
   - validate
 
-validate-pack:
+validate-resource-pack:
   image:
     name: ghcr.io/mrkinau/resourcepackvalidator:master
     entrypoint: [""]
-  tags:
-    - deploy
   stage: validate
   script:
-    - resourcepackvalidator -rp resourcepack -config validator.json -report ./report.xml
+    - resourcepackvalidator -rp resourcepack -config config.json -report ./report.xml
   artifacts:
     when: always
     untracked: false
@@ -78,7 +76,7 @@ validate-pack:
 ```
 <details>
   <summary>Screenshot</summary>
-  <img src="https://github.com/MrKinau/ResourcePackValidator/assets/13185260/20bf3697-76b3-42e5-8912-9ac39bb43dd9" />
+  <img src="https://github.com/MrKinau/ResourcePackValidator/assets/13185260/20bf3697-76b3-42e5-8912-9ac39bb43dd9"  alt="Gitlab CI Tests screenshot showing some validators failing"/>
 </details>
 
 ## Validators
