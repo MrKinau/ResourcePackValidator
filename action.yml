@@ -1,0 +1,13 @@
+name: 'Resource Pack Validator'
+description: 'Validate minecraft java edition resource packs'
+author: David "MrKinau" Luedtke
+inputs:
+  resourcepack:
+    description: 'Path to the resourcepack (zip or folder)'
+    required: false
+    default: 'resourcepack'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - '-rp ${{ inputs.resourcepack}}'
