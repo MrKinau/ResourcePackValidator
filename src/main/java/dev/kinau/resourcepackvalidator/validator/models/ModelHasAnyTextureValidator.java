@@ -32,7 +32,7 @@ public class ModelHasAnyTextureValidator extends FileContextValidator<JsonObject
             ValidationResult<JsonObject> result = failOrIgnore(context, job, modelObj, "No textures specified in model (textures object only contains particles, although this maybe works, it's kinda illegal) at {}", context.value().getPath());
             if (result != null) return result;
         }
-        return success(modelObj.getAsJsonObject("textures"));
+        return success(modelObj);
     }
 
     private ValidationResult<JsonObject> failOrSkip(FileContext context, ValidationJob job, JsonObject data, String warning, Object... args) {
