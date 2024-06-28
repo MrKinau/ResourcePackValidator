@@ -16,6 +16,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
+// On Update:
+// 1. libraries/com/mojang/minecraft/%ver%/assets | find . -type f > files.txt
+// 2. ./minecraft » minecraft
+// 3. .mcassetsroot » deleted
+// 4. merge with old data
+// 5. cat files.txt | sort | uniq > files2.txt
+// 6. (.+) » "$1",
+// 7. paste into json
+// 8. minify
 @Slf4j
 public class AssetDictionary {
 
