@@ -84,7 +84,7 @@ public class ValidationJob {
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .toList());
-            namespaces.stream().filter(overlayNamespace1 -> overlayNamespace1.getOverlay() == null).findAny().ifPresent(rootNamespace -> {
+            namespaces.stream().filter(overlayNamespace1 -> overlayNamespace1.getOverlay() == null).forEach(rootNamespace -> {
                 overlayNamespace.getUnderlyingOverlays().add(rootNamespace);
             });
         });
