@@ -87,9 +87,6 @@ All currently implemented Validators can be found [here](doc/VALIDATORS.md).
 Extend detection, to find models which do not have an override or override a vanilla item. 
 Also check all textures if they are used by a model which already is unused?
 
-### Parent Validator
-Validate parent entries: Does the parent model exist
-
 ### Animated texture frames missing / too many sprite frames
 Checks if an animated texture has too many / too few frames.
 

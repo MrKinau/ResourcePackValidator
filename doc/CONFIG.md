@@ -13,6 +13,11 @@ This is the default config:
       "logLevel": "ERROR",
       "ignore": []
     },
+    "ModelParentValidator": {
+      "enabled": true,
+      "logLevel": "ERROR",
+      "ignore": []
+    },
     "ModelHasAnyTextureValidator": {
       "enabled": true,
       "logLevel": "WARN",

@@ -5,6 +5,9 @@ Checks if the resource pack has a namespace folder (e.g. assets/**minecraft**). 
 ## ModelIsJsonObjectValidator
 Checks if all json files located in a namespaces models directory are JsonObjects. This is a basic check, which should never fail, but it's a requirement for all other model based checks.
 
+## ModelParentValidator
+Checks if a model has a valid parent, the parent needs to be inside the same resource pack or referencing a vanilla model. This check does not fail if no parent is set.
+
 ## ModelHasAnyTextureValidator
 Checks if a model has at least one texture assigned to it. This check does not fail if the model has an existing parent model.
 
