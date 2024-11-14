@@ -158,4 +158,13 @@ public class FileUtils {
                     .forEach(File::delete);
         }
     }
+
+    public static boolean isArmorModel(File file, OverlayNamespace namespace) {
+        if (file == null || !file.exists()) return false;
+
+        File equipmentModels = new File(namespace.getAssetsDir(), "models/equipment");
+        if (!equipmentModels.exists()) return false;
+
+        return file.toPath().startsWith(equipmentModels.toPath());
+    }
 }

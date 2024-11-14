@@ -82,6 +82,17 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
             String referenceKey = texture.substring(1);
             if (textureData.containsKey(referenceKey)) return true;
         }
+        if (FileUtils.isArmorModel(context.value(), context.namespace())) {
+            String[] categoryParts = key.split("\\[");
+            String category = categoryParts[0];
+            String[] textureParts = texture.split(":");
+            String textureNamespace = "";
+            if (textureParts.length == 2) {
+                textureNamespace = textureParts[0] + ":";
+                texture = textureParts[1];
+            }
+            texture = textureNamespace + "entity/equipment/" + category + "/" + texture;
+        }
         if (!FileUtils.textureExists(context.namespace(), texture, job.assetDictionary())) {
             failedError("Model has linked texture that is not present ({}) at {}", key + " » " + texture, context.value().getPath());
             return false;
