@@ -17,6 +17,9 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 // On Update:
+//
+// There is a cmd line argument you can use to generate the assetscache
+//
 // 1. libraries/com/mojang/minecraft/%ver%/assets | find . -type f > files.txt
 // 2. ./minecraft » minecraft
 // 3. .mcassetsroot » deleted

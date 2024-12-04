@@ -94,8 +94,14 @@ Some validators may require additional data in order to work.
       "enabled": true,
       "required": [
         {
-          "path": "glob:**/cosmetics/back/**",
-          "overlays": [ "1_20_2" ]
+          "path": "glob:**/minecraft/models/equipment/**",
+          "overlays": [ "1_21_4" ],
+          "replacements": [
+            {
+              "path": "/models/equipment/",
+              "replacement": "/equipment/"
+            }
+          ]
         }
       ]
     }

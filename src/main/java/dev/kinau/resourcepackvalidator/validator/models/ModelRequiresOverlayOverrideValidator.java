@@ -37,7 +37,17 @@ public class ModelRequiresOverlayOverrideValidator extends FileContextValidator<
             if (element.getAsJsonObject().has("path") && element.getAsJsonObject().has("overlays")) {
                 PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(element.getAsJsonObject().get("path").getAsString());
                 List<String> overlays = element.getAsJsonObject().getAsJsonArray("overlays").asList().stream().map(JsonElement::getAsString).toList();
-                requirements.add(new Requirement(pathMatcher, overlays));
+                List<ReplacementRule> replacementRules = new ArrayList<>();
+                if (element.getAsJsonObject().has("replacements") && element.getAsJsonObject().get("replacements").isJsonArray()) {
+                    for (JsonElement ruleElement : element.getAsJsonObject().getAsJsonArray("replacements")) {
+                        if (!ruleElement.isJsonObject()) continue;
+                        JsonObject ruleObject = ruleElement.getAsJsonObject();
+                        if (!ruleObject.has("path") || !ruleObject.get("path").isJsonPrimitive()) continue;
+                        if (!ruleObject.has("replacement") || !ruleObject.get("replacement").isJsonPrimitive()) continue;
+                        replacementRules.add(new ReplacementRule(ruleObject.get("path").getAsString(), ruleObject.get("replacement").getAsString()));
+                    }
+                }
+                requirements.add(new Requirement(pathMatcher, overlays, replacementRules));
             }
         });
     }
@@ -49,7 +59,6 @@ public class ModelRequiresOverlayOverrideValidator extends FileContextValidator<
 
     @Override
     protected ValidationResult<JsonObject> isValid(ValidationJob job, FileContext context, JsonObject data) {
-        if (context.namespace().getOverlay() != null) return skip();
         boolean failed = false;
         for (Requirement requirement : requirements) {
             if (requirement.path.matches(context.value().toPath())) {
@@ -62,7 +71,8 @@ public class ModelRequiresOverlayOverrideValidator extends FileContextValidator<
                     if (optNamespace.isEmpty())
                         return failedError("Could not find overlay {} although it is required", requiredOverlay);
                     OverlayNamespace namespace = optNamespace.get();
-                    File requiredFile = FileUtils.getFileInOverlay(namespace, context.value());
+                    File updatedFile = new File(requirement.applyRules(context.value()));
+                    File requiredFile = FileUtils.getFileInOverlay(namespace, updatedFile);
                     if (requiredFile == null || !requiredFile.exists()) {
                         failed = true;
                         String path = requiredFile != null ? requiredFile.getPath() : "some unresolved location";
@@ -79,5 +89,22 @@ public class ModelRequiresOverlayOverrideValidator extends FileContextValidator<
     class Requirement {
         public final PathMatcher path;
         public final List<String> overlays;
+        public final List<ReplacementRule> replacementRules;
+
+        public String applyRules(File file) {
+            if (replacementRules == null) return file.getPath();
+            String path = file.getPath();
+            for (ReplacementRule replacementRule : replacementRules) {
+                path = path.replace(replacementRule.path, replacementRule.replacement);
+            }
+            return path;
+        }
+    }
+
+    @RequiredArgsConstructor
+    @ToString
+    class ReplacementRule {
+        public final String path;
+        public final String replacement;
     }
 }
