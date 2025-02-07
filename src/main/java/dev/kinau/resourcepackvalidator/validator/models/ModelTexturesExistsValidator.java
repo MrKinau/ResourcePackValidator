@@ -11,8 +11,10 @@ import dev.kinau.resourcepackvalidator.validator.context.FileContext;
 import dev.kinau.resourcepackvalidator.validator.generic.FileContextValidator;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class ModelTexturesExistsValidator extends FileContextValidator<JsonObject, Map<String, String>> {
@@ -46,7 +48,7 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
         // Fallback 1: Check if it is present in another overlay
         // Fallback 2: check if it is a minecraft vanilla texture
         for (Map.Entry<String, String> kv : textureData.entrySet()) {
-            if (!validateTexture(kv.getKey(), kv.getValue(), textureData, context, job))
+            if (!validateTexture(kv.getKey(), kv.getValue(), context, job))
                 failed = true;
         }
         if (failed)
@@ -66,7 +68,7 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
                     if (!faceObj.has("texture") || !faceObj.get("texture").isJsonPrimitive()
                             || !faceObj.getAsJsonPrimitive("texture").isString()) continue;
                     String texture = faceObj.getAsJsonPrimitive("texture").getAsString();
-                    if (!validateTexture(key, texture, textureData, context, job))
+                    if (!validateTexture(key, texture, context, job))
                         failed = true;
                 }
             }
@@ -77,11 +79,9 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
         return success(textureData);
     }
 
-    private boolean validateTexture(String key, String texture, Map<String, String> textureData, FileContext context, ValidationJob job) {
-        if (texture.startsWith("#")) {
-            String referenceKey = texture.substring(1);
-            if (textureData.containsKey(referenceKey)) return true;
-        }
+    private boolean validateTexture(String key, String texture, FileContext context, ValidationJob job) {
+        if (texture.startsWith("#"))
+            return true;
         if (FileUtils.isArmorModel(context.value(), context.namespace())) {
             String[] categoryParts = key.split("\\[");
             String category = categoryParts[0];
@@ -94,9 +94,22 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
             texture = textureNamespace + "entity/equipment/" + category + "/" + texture;
         }
         if (!FileUtils.textureExists(context.namespace(), texture, job.assetDictionary())) {
-            failedError("Model has linked texture that is not present ({}) at {}", key + " » " + texture, context.value().getPath());
+            failedError("Model has linked a texture that is not present ({}) at {}", key + " » " + texture, context.value().getPath());
             return false;
         }
         return true;
+    }
+
+    //TODO do not only check vanilla assets
+    //TODO do not only check direct children
+    //TODO move to another validator that checks if all references are resolvable
+    private Set<String> getChildren(ValidationJob job, FileContext context) {
+        String relPath = "";
+        String[] parts = context.value().getPath().split("assets" + File.separator + context.namespace().getNamespaceName() + File.separator + FileUtils.Directory.MODELS.getPath() + File.separator);
+        if (parts.length > 1)
+            relPath = parts[1];
+        if (relPath.endsWith(".json"))
+            relPath = relPath.substring(0, relPath.length() - 5);
+        return job.assetDictionary().getChildren(relPath, context.namespace().getNamespaceName() + ":" + relPath);
     }
 }

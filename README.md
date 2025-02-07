@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/MrKinau/ResourcePackValidator)](https://github.com/MrKinau/ResourcePackValidator/blob/master/LICENSE)
 [![Discord](https://img.shields.io/discord/550764567282712583?logo=discord)](https://discord.gg/xHpCDYf)
 
-A commandline tool to validate a Minecraft Java Edition resource pack. It runs several validations, that normally run while loading the resource pack in the vanilla client as well as some extra validations to identify issues.
+A commandline tool to validate a Minecraft Java Edition resource pack. It runs several validations, that normally run when loading the resource pack in the vanilla client as well as some extra validations to identify issues.
 
 ## Commandline Arguments
 - `-help` Show all available commandline arguments
