@@ -1,6 +1,7 @@
 package dev.kinau.resourcepackvalidator.utils;
 
 import dev.kinau.resourcepackvalidator.cache.AssetDictionary;
+import dev.kinau.resourcepackvalidator.validator.context.FileContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -166,5 +167,26 @@ public class FileUtils {
         if (!equipmentModels.exists()) return false;
 
         return file.toPath().startsWith(equipmentModels.toPath());
+    }
+
+    public static String stripNamespace(String path) {
+        if (path.contains(":"))
+            path = path.substring(path.indexOf(":") + 1);
+        return path;
+    }
+
+    public static String getRelPath(FileContext context) {
+        return getRelPath(context.value(), context.namespace().getNamespaceName());
+    }
+
+    public static String getRelPath(File file, String namespaceName) {
+        String relPath = "";
+        String[] parts = file.getPath().split("assets" + File.separator + namespaceName + File.separator + FileUtils.Directory.MODELS.getPath() + File.separator);
+        if (parts.length > 1)
+            relPath = parts[1];
+        if (relPath.endsWith(".json"))
+            relPath = relPath.substring(0, relPath.length() - 5);
+        relPath = stripNamespace(relPath);
+        return relPath;
     }
 }

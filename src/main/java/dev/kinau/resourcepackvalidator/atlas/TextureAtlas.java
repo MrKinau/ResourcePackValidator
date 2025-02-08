@@ -22,13 +22,13 @@ public class TextureAtlas {
     private final OverlayNamespace namespace;
     private AtlasData data;
 
-    public TextureAtlas(OverlayNamespace namespace) {
+    public TextureAtlas(OverlayNamespace namespace, Gson gson) {
         this.namespace = namespace;
         try {
             File atlasDir = FileUtils.Directory.ATLASES.getFile(namespace);
             File blocksAtlas = new File(atlasDir, "blocks.json");
             if (!blocksAtlas.exists()) return;
-            this.data = new Gson().fromJson(new FileReader(blocksAtlas), AtlasData.class);
+            this.data = gson.fromJson(new FileReader(blocksAtlas), AtlasData.class);
             data.sources().add(new AtlasSource("directory", "item", "", null, null));
             data.sources().add(new AtlasSource("directory", "block", "", null, null));
         } catch (Exception ex) {

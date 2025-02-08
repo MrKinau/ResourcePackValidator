@@ -34,12 +34,11 @@ import java.util.stream.Stream;
 public class AssetDictionary {
 
     private static final Asset EMPTY_ASSET = new Asset(null, null);
-    private static final Gson GSON = new Gson();
 
     private final Map<String, Asset> assets = new HashMap<>();
 
     // TODO: Distinguish resource pack versions?
-    public AssetDictionary load() {
+    public AssetDictionary load(Gson gson) {
         log.debug("Loading vanilla assets…");
         assets.clear();
         try (InputStream stream = AssetDictionary.class.getClassLoader().getResourceAsStream("vanillaassets.json")) {
@@ -60,7 +59,7 @@ public class AssetDictionary {
                     if (assetObject.isEmpty()) continue;
                     String key = assetObject.keySet().iterator().next();
                     try {
-                        Asset asset = GSON.fromJson(assetObject.getAsJsonObject(key), Asset.class);
+                        Asset asset = gson.fromJson(assetObject.getAsJsonObject(key), Asset.class);
                         assets.put(key, asset);
                     } catch (JsonSyntaxException e) {
                         assets.put(key, EMPTY_ASSET);
@@ -90,10 +89,10 @@ public class AssetDictionary {
                                 if (jsonElement != null && jsonElement.isJsonObject()) {
                                     JsonObject fullObject = jsonElement.getAsJsonObject();
                                     assetObject = new JsonObject();
-                                    if (fullObject.has("parent")) {
+                                    if (fullObject.has("parent") && fullObject.get("parent").isJsonPrimitive()) {
                                         assetObject.add("parent", fullObject.get("parent"));
                                     }
-                                    if (fullObject.has("textures")) {
+                                    if (fullObject.has("textures") && fullObject.get("textures").isJsonObject()) {
                                         assetObject.add("textures", fullObject.get("textures"));
                                     }
                                 }
@@ -119,6 +118,10 @@ public class AssetDictionary {
 
     public boolean contains(String asset) {
         return assets.containsKey(asset);
+    }
+
+    public Asset getAsset(String asset) {
+        return assets.get(asset);
     }
 
     public Set<String> getChildren(String... asset) {

@@ -90,6 +90,9 @@ Also check all textures if they are used by a model which already is unused?
 ### Animated texture frames missing / too many sprite frames
 Checks if an animated texture has too many / too few frames.
 
+### Version support
+There is no way to enforce a specific minecraft version, vanilla resources from different 1.20 and 1.21 versions are merged to validate against.
+
 ## Discord
 To follow the project, get support or request features or bugs you can join my Discord: https://discord.gg/xHpCDYf
 

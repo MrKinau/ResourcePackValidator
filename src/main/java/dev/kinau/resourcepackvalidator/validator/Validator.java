@@ -84,7 +84,7 @@ public abstract class Validator<Input, Context extends ValidationContext<?>, Out
     }
 
     final protected String logPrefix() {
-        return String.format("[%-30s] ", getClass().getSimpleName());
+        return String.format("[%s] ", getClass().getSimpleName());
     }
 
     final protected ValidationResult<Output> failedError(String error, Object... args) {

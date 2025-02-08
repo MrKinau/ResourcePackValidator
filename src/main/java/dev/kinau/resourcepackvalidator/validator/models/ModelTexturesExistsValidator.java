@@ -11,10 +11,8 @@ import dev.kinau.resourcepackvalidator.validator.context.FileContext;
 import dev.kinau.resourcepackvalidator.validator.generic.FileContextValidator;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 public class ModelTexturesExistsValidator extends FileContextValidator<JsonObject, Map<String, String>> {
@@ -98,18 +96,5 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
             return false;
         }
         return true;
-    }
-
-    //TODO do not only check vanilla assets
-    //TODO do not only check direct children
-    //TODO move to another validator that checks if all references are resolvable
-    private Set<String> getChildren(ValidationJob job, FileContext context) {
-        String relPath = "";
-        String[] parts = context.value().getPath().split("assets" + File.separator + context.namespace().getNamespaceName() + File.separator + FileUtils.Directory.MODELS.getPath() + File.separator);
-        if (parts.length > 1)
-            relPath = parts[1];
-        if (relPath.endsWith(".json"))
-            relPath = relPath.substring(0, relPath.length() - 5);
-        return job.assetDictionary().getChildren(relPath, context.namespace().getNamespaceName() + ":" + relPath);
     }
 }
