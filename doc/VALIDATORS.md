@@ -14,6 +14,9 @@ Checks if a model has at least one texture assigned to it. This check does not f
 ## ModelTexturesExistsValidator
 Checks if the texture files referenced in the model exists.
 
+## ModelTextureReferencesResolvableValidator
+Checks if all hashprefixed referenced textures (e.g. #side) are bound to a texture. This validation is skipped if the file is used as a parent in any other model to allow template models.
+
 ## ModelOverridesExistsValidator
 Checks if item overrides are correct and the referenced model exists.
 

@@ -1,9 +1,6 @@
 package dev.kinau.resourcepackvalidator;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import dev.kinau.resourcepackvalidator.atlas.TextureAtlas;
 import dev.kinau.resourcepackvalidator.cache.AssetDictionary;
 import dev.kinau.resourcepackvalidator.cache.NamespaceJsonCache;
@@ -28,6 +25,8 @@ import java.util.stream.Collectors;
 @Getter
 public class ValidationJob {
 
+    @Getter
+    private final Gson gson = new Gson();
     private final File rootDir;
     private final ValidatorRegistry registry;
     private final McMetaFile mcMetaFile;
@@ -48,9 +47,9 @@ public class ValidationJob {
         namespaces.forEach(namespace -> {
             jsonCache.put(namespace, new NamespaceJsonCache(namespace));
             textureCache.put(namespace, new NamespaceTextureCache(namespace));
-            textureAtlas.put(namespace, new TextureAtlas(namespace));
+            textureAtlas.put(namespace, new TextureAtlas(namespace, gson));
         });
-        this.assetDictionary = new AssetDictionary().load();
+        this.assetDictionary = new AssetDictionary().load(gson);
         this.fontProviderFactory = new FontProviderFactory();
     }
 

@@ -1,7 +1,6 @@
 package dev.kinau.resourcepackvalidator;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import dev.kinau.resourcepackvalidator.cache.AssetDictionary;
 import dev.kinau.resourcepackvalidator.config.Config;
 import dev.kinau.resourcepackvalidator.report.ReportGenerator;
@@ -13,9 +12,7 @@ import dev.kinau.resourcepackvalidator.validator.ValidatorRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.logging.LogManager;
 
@@ -90,12 +87,45 @@ public class ResourcePackValidator {
 
     private void shouldCreateAssetCache() {
         if (commandLine.hasOption("createAssetCache")) {
+            // create new assets
             JsonObject assets = new AssetDictionary().createAssets(new File(commandLine.getOptionValue("createAssetCache")));
             File assetsFile = new File("vanillaassets.json");
             try {
                 Files.writeString(assetsFile.toPath(), assets.toString());
+                log.info("Created assets file: {}", assetsFile.getPath());
             } catch (IOException ex) {
-                log.error("Could not saved " + assetsFile.getPath(), ex);
+                log.error("Could not save {}", assetsFile.getPath(), ex);
+            }
+
+            // merge with old assets
+            JsonObject oldAssets = null;
+            try (InputStream stream = AssetDictionary.class.getClassLoader().getResourceAsStream("vanillaassets.json")) {
+                if (stream == null) throw new IllegalArgumentException("vanillaassets.json is null");
+                JsonElement root = JsonParser.parseReader(new InputStreamReader(stream));
+                if (!root.isJsonObject()) throw new IllegalArgumentException("root is not JsonObject");
+                oldAssets = root.getAsJsonObject();
+            } catch (IOException | IllegalArgumentException ex) {
+                log.error("Could not read vanilla assets", ex);
+            }
+            if (oldAssets == null) {
+                System.exit(0);
+                return;
+            }
+            JsonArray newFiles = assets.getAsJsonArray("files");
+            JsonArray mergedFiles = oldAssets.getAsJsonArray("files");
+            for (JsonElement newFile : newFiles) {
+                if (!mergedFiles.contains(newFile)) {
+                    mergedFiles.add(newFile);
+                }
+            }
+            JsonObject merged = new JsonObject();
+            merged.add("files", mergedFiles);
+            File mergedAssetsFile = new File("vanillaassets_merged.json");
+            try {
+                Files.writeString(mergedAssetsFile.toPath(), merged.toString());
+                log.info("Created merged assets file: {}", mergedAssetsFile.getPath());
+            } catch (IOException ex) {
+                log.error("Could not save {}", mergedAssetsFile.getPath(), ex);
             }
             System.exit(0);
         }

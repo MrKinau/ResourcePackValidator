@@ -28,6 +28,11 @@ This is the default config:
       "logLevel": "ERROR",
       "ignore": []
     },
+    "ModelTextureReferencesResolvableValidator": {
+      "enabled": true,
+      "logLevel": "ERROR",
+      "ignore": []
+    },
     "ModelOverridesExistsValidator": {
       "enabled": true,
       "logLevel": "ERROR",

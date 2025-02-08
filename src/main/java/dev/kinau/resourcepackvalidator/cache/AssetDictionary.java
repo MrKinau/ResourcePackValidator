@@ -1,19 +1,21 @@
 package dev.kinau.resourcepackvalidator.cache;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javax.annotation.Nullable;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 // On Update:
@@ -31,10 +33,12 @@ import java.util.stream.Stream;
 @Slf4j
 public class AssetDictionary {
 
-    private final Set<String> assets = new HashSet<>();
+    private static final Asset EMPTY_ASSET = new Asset(null, null);
+
+    private final Map<String, Asset> assets = new HashMap<>();
 
     // TODO: Distinguish resource pack versions?
-    public AssetDictionary load() {
+    public AssetDictionary load(Gson gson) {
         log.debug("Loading vanilla assets…");
         assets.clear();
         try (InputStream stream = AssetDictionary.class.getClassLoader().getResourceAsStream("vanillaassets.json")) {
@@ -45,7 +49,23 @@ public class AssetDictionary {
             if (!rootObject.has("files") || !rootObject.get("files").isJsonArray())
                 throw new IllegalArgumentException("root has no files array");
             JsonArray files = rootObject.getAsJsonArray("files");
-            assets.addAll(files.asList().stream().map(JsonElement::getAsString).toList());
+            for (JsonElement assetElement : files) {
+                if (assetElement.isJsonPrimitive()) {
+                    assets.put(assetElement.getAsString(), EMPTY_ASSET);
+                    continue;
+                }
+                if (assetElement.isJsonObject()) {
+                    JsonObject assetObject = assetElement.getAsJsonObject();
+                    if (assetObject.isEmpty()) continue;
+                    String key = assetObject.keySet().iterator().next();
+                    try {
+                        Asset asset = gson.fromJson(assetObject.getAsJsonObject(key), Asset.class);
+                        assets.put(key, asset);
+                    } catch (JsonSyntaxException e) {
+                        assets.put(key, EMPTY_ASSET);
+                    }
+                }
+            }
             log.debug("Loaded {} vanilla assets", assets.size());
         } catch (IOException | IllegalArgumentException ex) {
             log.error("Could not read vanilla assets", ex);
@@ -62,7 +82,32 @@ public class AssetDictionary {
             fileTree.filter(path -> !path.toFile().isDirectory())
                     .filter(path -> !path.toFile().getName().equals(".mcassetsroot"))
                     .forEach(path -> {
-                        files.add(path.toString().substring(rootPath.toString().length() + 1));
+                        JsonObject assetObject = null;
+                        if (path.toFile().getName().endsWith(".json")) {
+                            try {
+                                JsonElement jsonElement = JsonParser.parseReader(new FileReader(path.toFile()));
+                                if (jsonElement != null && jsonElement.isJsonObject()) {
+                                    JsonObject fullObject = jsonElement.getAsJsonObject();
+                                    assetObject = new JsonObject();
+                                    if (fullObject.has("parent") && fullObject.get("parent").isJsonPrimitive()) {
+                                        assetObject.add("parent", fullObject.get("parent"));
+                                    }
+                                    if (fullObject.has("textures") && fullObject.get("textures").isJsonObject()) {
+                                        assetObject.add("textures", fullObject.get("textures"));
+                                    }
+                                }
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        String relPath = path.toString().substring(rootPath.toString().length() + 1);
+                        if (assetObject == null || assetObject.isEmpty()) {
+                            files.add(relPath);
+                        } else {
+                            JsonObject dataObject = new JsonObject();
+                            dataObject.add(relPath, assetObject);
+                            files.add(dataObject);
+                        }
                     });
         } catch (IOException ex) {
             log.error("Could not create assets", ex);
@@ -72,6 +117,34 @@ public class AssetDictionary {
     }
 
     public boolean contains(String asset) {
-        return assets.contains(asset);
+        return assets.containsKey(asset);
+    }
+
+    public Asset getAsset(String asset) {
+        return assets.get(asset);
+    }
+
+    public Set<String> getChildren(String... asset) {
+        if (asset == null || asset.length == 0)
+            return Collections.emptySet();
+        return assets.entrySet().stream()
+                .filter(entry -> {
+                    for (String s : asset) {
+                        if (s.equals(entry.getValue().parent()))
+                            return true;
+                    }
+                    return false;
+                })
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    @ToString
+    @Accessors(fluent = true)
+    public static class Asset {
+        @Nullable private String parent;
+        @Nullable private Map<String, String> textures;
     }
 }
