@@ -141,7 +141,7 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
         if (optObj.isPresent())
             return new ModelWithSource(false, optObj.get());
         AssetDictionary.Asset asset = job.assetDictionary().getAsset(
-                context.namespace().getNamespaceName() + File.separator +
+                        "minecraft" + File.separator +
                         FileUtils.Directory.MODELS.getPath() + File.separator +
                         relPath + ".json"
         );
@@ -168,7 +168,7 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
                 if (parent.startsWith("builtin/")) break;
                 modelData = getModelObject(FileUtils.stripNamespace(parent), job, context);
                 if (modelData == null) {
-                    failedError("Parent model {} for {} could not be found at {}", parent, relPath, context.value().getPath());
+                    failedError("Parent model {} for {}:{} could not be found at {}", parent, context.namespace().getNamespaceName(), relPath, context.value().getPath());
                     return null;
                 }
                 continue;

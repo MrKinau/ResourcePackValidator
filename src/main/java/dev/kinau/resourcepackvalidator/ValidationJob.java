@@ -34,9 +34,9 @@ public class ValidationJob {
     private final List<Overlay> overlays;
     private final Map<OverlayNamespace, NamespaceJsonCache> jsonCache = new HashMap<>();
     private final Map<OverlayNamespace, NamespaceTextureCache> textureCache = new HashMap<>();
-    private final Map<OverlayNamespace, TextureAtlas> textureAtlas = new HashMap<>();
     private final AssetDictionary assetDictionary;
     private final FontProviderFactory fontProviderFactory;
+    private final TextureAtlas textureAtlas;
 
     public ValidationJob(File rootDir, ValidatorRegistry registry) {
         this.rootDir = rootDir;
@@ -44,10 +44,10 @@ public class ValidationJob {
         this.mcMetaFile = readMcMeta();
         this.overlays = loadOverlays();
         this.namespaces = loadNamespaces();
+        this.textureAtlas = new TextureAtlas(rootDir, gson);
         namespaces.forEach(namespace -> {
             jsonCache.put(namespace, new NamespaceJsonCache(namespace));
             textureCache.put(namespace, new NamespaceTextureCache(namespace));
-            textureAtlas.put(namespace, new TextureAtlas(namespace, gson));
         });
         this.assetDictionary = new AssetDictionary().load(gson);
         this.fontProviderFactory = new FontProviderFactory();

@@ -80,7 +80,8 @@ public class FileUtils {
     }
 
     private static File getFile(Directory directory, OverlayNamespace defaultNamespace, String relPath, String suffix) {
-        File filesDir = directory.getFile(defaultNamespace);
+        // default namespace is always minecraft
+        File filesDir = directory.getFile(new File(FileUtils.getAssetsDir(defaultNamespace.getOverlayOrRootDir()), "minecraft"));
 
         File file = new File(filesDir, relPath.replace("/", File.separator) + suffix);
         if (relPath.contains(":")) {

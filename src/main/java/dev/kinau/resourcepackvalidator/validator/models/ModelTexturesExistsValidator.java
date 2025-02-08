@@ -9,12 +9,10 @@ import dev.kinau.resourcepackvalidator.utils.FileUtils;
 import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.context.FileContext;
 import dev.kinau.resourcepackvalidator.validator.generic.FileContextValidator;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
 public class ModelTexturesExistsValidator extends FileContextValidator<JsonObject, Map<String, String>> {
 
     public ModelTexturesExistsValidator(Map<String, JsonObject> config, TestSuite testSuite) {
@@ -78,6 +76,7 @@ public class ModelTexturesExistsValidator extends FileContextValidator<JsonObjec
     }
 
     private boolean validateTexture(String key, String texture, FileContext context, ValidationJob job) {
+        // Handled in ModelTextureReferencesResolvableValidator
         if (texture.startsWith("#"))
             return true;
         if (FileUtils.isArmorModel(context.value(), context.namespace())) {

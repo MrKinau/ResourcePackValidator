@@ -19,24 +19,22 @@ import java.util.List;
 @Slf4j
 public class TextureAtlas {
 
-    private final OverlayNamespace namespace;
     private AtlasData data;
 
-    public TextureAtlas(OverlayNamespace namespace, Gson gson) {
-        this.namespace = namespace;
+    public TextureAtlas(File rootDir, Gson gson) {
         try {
-            File atlasDir = FileUtils.Directory.ATLASES.getFile(namespace);
+            File atlasDir = FileUtils.Directory.ATLASES.getFile(rootDir, "minecraft");
             File blocksAtlas = new File(atlasDir, "blocks.json");
             if (!blocksAtlas.exists()) return;
             this.data = gson.fromJson(new FileReader(blocksAtlas), AtlasData.class);
             data.sources().add(new AtlasSource("directory", "item", "", null, null));
             data.sources().add(new AtlasSource("directory", "block", "", null, null));
         } catch (Exception ex) {
-            log.error("Could not load blocks atlas for " + namespace.getName() + " at " + namespace.getAssetsDir().getPath(), ex);
+            log.error("Could not load blocks atlas", ex);
         }
     }
 
-    public boolean isPartOfAtlas(File file) {
+    public boolean isPartOfAtlas(OverlayNamespace namespace, File file) {
         if (data == null) return false;
         return data.sources().stream().anyMatch(atlasSource -> atlasSource.isInAtlas(namespace, file));
     }

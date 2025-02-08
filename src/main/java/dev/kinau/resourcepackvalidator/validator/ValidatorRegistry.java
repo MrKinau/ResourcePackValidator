@@ -49,7 +49,8 @@ public class ValidatorRegistry {
             }
         };
 
-        rootValidator.then(new NamespaceCollectionValidator(configData, testSuite)
+        rootValidator
+                .then(new NamespaceCollectionValidator(configData, testSuite)
                         .then(new AnyNamespacePresentValidator(configData, testSuite)))
                 .then(new JsonElementMapper(configData, testSuite, FileUtils.Directory.MODELS)
                         .thenForEachElement(new ModelIsJsonObjectValidator(configData, testSuite)
@@ -84,7 +85,7 @@ public class ValidatorRegistry {
     }
 
     private boolean isPartOfAtlas(ValidationJob job, FileContextWithData<BufferedImage> context) {
-        return job.textureAtlas().get(context.namespace()).isPartOfAtlas(context.value());
+        return job.textureAtlas().isPartOfAtlas(context.namespace(), context.value());
     }
 
 }
