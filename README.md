@@ -24,7 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Validate Resource Pack
-        uses: MrKinau/ResourcePackValidator@v1
+        uses: MrKinau/ResourcePackValidator@v2
         with:
           resourcepack: resourcepack
           config: config.json
