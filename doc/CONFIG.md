@@ -58,6 +58,11 @@ This is the default config:
       "logLevel": "ERROR",
       "ignore": []
     },
+    "InvalidPathValidator": {
+      "enabled": true,
+      "logLevel": "ERROR",
+      "ignore": []
+    },
     "ModelRequiresOverlayOverrideValidator": {
       "enabled": false,
       "logLevel": "ERROR",

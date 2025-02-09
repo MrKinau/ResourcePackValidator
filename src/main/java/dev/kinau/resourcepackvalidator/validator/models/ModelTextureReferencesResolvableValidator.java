@@ -33,7 +33,7 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
         if (children == null)
             return failedError("Model parent depth is higher than {} at {}", MAX_DEPTH, context.value().getPath());
         if (children.isEmpty())
-            children.add(new ModelPathWithSource(false, FileUtils.getRelPath(context)));
+            children.add(new ModelPathWithSource(false, FileUtils.getRelPath(context, FileUtils.Directory.MODELS)));
 
         boolean failed = false;
         for (ModelPathWithSource child : children) {
@@ -48,7 +48,7 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
     }
 
     private Set<ModelPathWithSource> getCustomChildren(ValidationJob job, FileContext context) {
-        String relPath = FileUtils.getRelPath(context);
+        String relPath = FileUtils.getRelPath(context, FileUtils.Directory.MODELS);
         return getCustomChildren(relPath, job, context);
     }
 
@@ -65,7 +65,7 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
                         String parent = modelObj.getAsJsonPrimitive("parent").getAsString();
                         return parent.equals(relPath) || parent.equals(context.namespace().getNamespaceName() + ":" + relPath);
                     })
-                    .map(jsonElementWithFile -> FileUtils.getRelPath(jsonElementWithFile.file(), context.namespace().getNamespaceName()))
+                    .map(jsonElementWithFile -> FileUtils.getRelPath(jsonElementWithFile.file(), FileUtils.Directory.MODELS, context.namespace().getNamespaceName()))
                     .map(s -> new ModelPathWithSource(false, s))
                     .collect(Collectors.toSet()));
         }
@@ -102,12 +102,15 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
 
     private boolean validateTextureData(ModelPathWithSource model, ValidationJob job, FileContext context) {
         Map<String, TextureReferenceWithSource> textureData = new HashMap<>();
-        Set<ModelWithSource> parents = getAllParents(model, job, context);
+        List<ModelWithSource> parents = getAllParents(model, job, context);
 
         if (parents == null) return false;
         for (ModelWithSource parent : parents) {
             textureData.putAll(getTextureData(parent));
         }
+
+        if (!detectReferenceChain(textureData, model, context))
+            return false;
 
         Set<TextureReferenceWithSource> references = textureData.values().stream().filter(s -> s.referenceValue().startsWith("#")).collect(Collectors.toSet());
         if (references.isEmpty()) return true;
@@ -116,13 +119,13 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
         for (TextureReferenceWithSource reference : references) {
             if (!textureData.containsKey(reference.referenceValue().substring(1))) {
                 // a child is already failing, do not fail twice for the parent again
-                if (!model.path().equals(FileUtils.getRelPath(context)) && !reference.vanilla()) continue;
+                if (!model.path().equals(FileUtils.getRelPath(context, FileUtils.Directory.MODELS)) && !reference.vanilla()) continue;
                 failedError("Texture reference {} is missing at {} ({})", reference.referenceValue(), context.namespace().getNamespaceName() + File.separator + FileUtils.Directory.MODELS.getPath() + File.separator + model.path(), context.value().getPath());
                 failed = true;
             }
         }
 
-        return failed;
+        return !failed;
     }
 
     private ModelWithSource getModelObject(String relPath, ValidationJob job, FileContext context) {
@@ -131,8 +134,8 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
             if (!jsonCache.namespace().getNamespaceName().equals(context.namespace().getNamespaceName())) continue;
             optObj = jsonCache.cache().get(FileUtils.Directory.MODELS).stream()
                     .filter(jsonElementWithFile -> {
-                        return FileUtils.getRelPath(jsonElementWithFile.file(), context.namespace().getNamespaceName()).equals(relPath)
-                                || (context.namespace().getNamespaceName() + ":" + FileUtils.getRelPath(jsonElementWithFile.file(), context.namespace().getNamespaceName())).equals(relPath);
+                        return FileUtils.getRelPath(jsonElementWithFile.file(), FileUtils.Directory.MODELS, context.namespace().getNamespaceName()).equals(relPath)
+                                || (context.namespace().getNamespaceName() + ":" + FileUtils.getRelPath(jsonElementWithFile.file(), FileUtils.Directory.MODELS, context.namespace().getNamespaceName())).equals(relPath);
                     })
                     .map(jsonElementWithFile -> jsonElementWithFile.element().getAsJsonObject())
                     .findAny();
@@ -153,16 +156,16 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
         return null;
     }
 
-    private Set<ModelWithSource> getAllParents(ModelPathWithSource model, ValidationJob job, FileContext context) {
+    private List<ModelWithSource> getAllParents(ModelPathWithSource model, ValidationJob job, FileContext context) {
         String relPath = model.path();
         ModelWithSource modelData = getModelObject(relPath, job, context);
         if (modelData == null) {
             failedError("Model {} could not be found during validation of {}", relPath, context.value().getPath());
             return null;
         }
-        Set<ModelWithSource> parents = new HashSet<>();
+        List<ModelWithSource> parents = new ArrayList<>();
         for (int i = 0; i < MAX_DEPTH; i++) {
-            parents.add(modelData);
+            parents.add(0, modelData);
             if (modelData.modelObject().has("parent") && modelData.modelObject().get("parent").isJsonPrimitive()) {
                 String parent = modelData.modelObject().getAsJsonPrimitive("parent").getAsString();
                 if (parent.startsWith("builtin/")) break;
@@ -188,6 +191,37 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
             }
         }
         return textureData;
+    }
+
+    private boolean detectReferenceChain(Map<String, TextureReferenceWithSource> textureData, ModelPathWithSource model, FileContext context) {
+        for (TextureReferenceWithSource textureField : textureData.values()) {
+            // a child is already failing, do not fail twice for the parent again
+            if (!model.path().equals(FileUtils.getRelPath(context, FileUtils.Directory.MODELS)) && !textureField.vanilla()) continue;
+
+            List<String> visited = new ArrayList<>();
+
+            TextureReferenceWithSource currTextureField = textureField;
+
+            for (int i = 0; i < MAX_DEPTH; i++) {
+                if (currTextureField == null) continue;
+                String value = currTextureField.referenceValue();
+                if (!value.startsWith("#")) continue;
+                String reference = value.substring(1);
+                if (visited.contains(reference)) {
+                    visited.add(reference);
+                    String chain = String.join("->", visited);
+                    failedError("Reference chain detected {} at {}", chain, context.value().getPath());
+                    return false;
+                }
+                visited.add(reference);
+                currTextureField = textureData.get(reference);
+                if (i == MAX_DEPTH - 1) {
+                    failedError("Reference chain depth is higher than {} at {}", MAX_DEPTH, context.value().getPath());
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Data

@@ -176,13 +176,13 @@ public class FileUtils {
         return path;
     }
 
-    public static String getRelPath(FileContext context) {
-        return getRelPath(context.value(), context.namespace().getNamespaceName());
+    public static String getRelPath(FileContext context, Directory directory) {
+        return getRelPath(context.value(), directory, context.namespace().getNamespaceName());
     }
 
-    public static String getRelPath(File file, String namespaceName) {
+    public static String getRelPath(File file, Directory directory, String namespaceName) {
         String relPath = "";
-        String[] parts = file.getPath().split("assets" + File.separator + namespaceName + File.separator + FileUtils.Directory.MODELS.getPath() + File.separator);
+        String[] parts = file.getPath().split("assets" + File.separator + namespaceName + File.separator + directory.getPath() + File.separator);
         if (parts.length > 1)
             relPath = parts[1];
         if (relPath.endsWith(".json"))

@@ -15,6 +15,7 @@ import dev.kinau.resourcepackvalidator.validator.font.FontCharacterUsageValidato
 import dev.kinau.resourcepackvalidator.validator.font.FontProviderMapper;
 import dev.kinau.resourcepackvalidator.validator.font.FontTextureExistsValidator;
 import dev.kinau.resourcepackvalidator.validator.general.AnyNamespacePresentValidator;
+import dev.kinau.resourcepackvalidator.validator.general.InvalidPathValidator;
 import dev.kinau.resourcepackvalidator.validator.general.UnusedFileValidator;
 import dev.kinau.resourcepackvalidator.validator.generic.FilterValidator;
 import dev.kinau.resourcepackvalidator.validator.generic.JsonElementMapper;
@@ -70,6 +71,7 @@ public class ValidatorRegistry {
                         .thenForEachElement(new TextureIsNotCorruptedValidator(configData, testSuite)
                                 .then(new TextureFilterMapper(configData, testSuite, this::isPartOfAtlas)
                                         .then(new TextureLimitMipLevelValidator(configData, testSuite)))))
+                .then(new InvalidPathValidator(configData, testSuite))
                 .then(new UnusedFileValidator(configData, testSuite));
     }
 

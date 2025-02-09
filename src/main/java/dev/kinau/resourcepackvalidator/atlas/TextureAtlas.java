@@ -25,8 +25,11 @@ public class TextureAtlas {
         try {
             File atlasDir = FileUtils.Directory.ATLASES.getFile(rootDir, "minecraft");
             File blocksAtlas = new File(atlasDir, "blocks.json");
-            if (!blocksAtlas.exists()) return;
-            this.data = gson.fromJson(new FileReader(blocksAtlas), AtlasData.class);
+            if (blocksAtlas.exists()) {
+                this.data = gson.fromJson(new FileReader(blocksAtlas), AtlasData.class);
+            } else {
+                this.data = new AtlasData();
+            }
             data.sources().add(new AtlasSource("directory", "item", "", null, null));
             data.sources().add(new AtlasSource("directory", "block", "", null, null));
         } catch (Exception ex) {
