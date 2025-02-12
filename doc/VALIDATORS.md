@@ -144,11 +144,55 @@ Checks if all hashprefixed referenced textures (e.g. #side) are bound to a textu
 ## ModelOverridesExistsValidator
 Checks if item overrides are correct and the referenced model exists.
 
+> [!NOTE]  
+> This validator only takes model overrides from before 1.21.4 into account (not the new item definitions inside the items subfolder)
+
+<details>
+  <summary>Failing Examples</summary>
+  <ul>
+    <li><br>
+<pre lang="json">{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "someKey": "someValue"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "some/path/not_existing"
+    }
+  ]
+}</pre><br>
+    In this example the override references a model path, which can not be resolved to a model json (e.g. the file does not exist or is located wrongly)
+    </li>
+  </ul>
+</details>
+
 ## UnusedFileValidator
 Checks every file if it has been referenced in any json file. Most files need to be referenced somewhere, but this check may falsely detect files, which are in use. This will not flag for vanilla texture/model overrides. Files can be ignored with the `ignore` option using shell globs or regex.
 
+> [!NOTE]  
+> This validator may have many false-positives and false-negatives
+
+
 ## TextureLimitMipLevelValidator
 Checks every PNG file, that will be loaded into the texture atlas, if it limits the mipmap levels. If the mip level drops below 4, the game displays certain textures with lower quality (e.g. leaves).
+
+<details>
+  <summary>Details</summary>
+  Whenever a texture is loaded, which does not respect the texture sizes required for mip mapping, it may drop the usable mip level. For mip mapping to work (for mip map level 4) you need to have a texture size of at least 16x16, height and width should be divisible by 16 without a remainder. For comparison: Here are two screenshots with mip level 0 and mip level 4 (differences mostly notable on distant leaves):<br><br>
+  Mip Level 4:<br>
+  <img alt="minecraft screenshot with mip level of 4" src="img/mip_level_4.png" /><br><br>
+  Mip Level 0:<br>
+  <img alt="minecraft screenshot with mip level of 0" src="img/mip_level_0.png" />
+</details>
+<details>
+  <summary>Fixing textures</summary>
+  To fix textures that do limit the mip level, you simply need to adjust their size to be divisible by 16 without remainder. This may also involve changing the model files for UV mapping.
+</details>
+
 
 ## TextureIsNotCorruptedValidator
 Checks every PNG file, that is located in any resource pack directory, if the texture is an actual image.
@@ -156,11 +200,65 @@ Checks every PNG file, that is located in any resource pack directory, if the te
 ## FontTextureExistsValidator
 Checks if the texture file referenced in the font provider exists.
 
+<details>
+  <summary>Failing Examples</summary>
+  <ul>
+    <li><br>
+<pre lang="json">{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "some/path/not_existing.png",
+      "ascent": 4,
+      "height": 10,
+      "chars": [
+        "\uE000"
+      ]
+    }
+  ]
+}</pre><br>
+    In this example the font provider references a texture which does not exist.
+    </li>
+  </ul>
+</details>
+
+
 ## FontCharacterUsageValidator
 Checks if a font file defines a character multiple times, which overrides the character.
+
+<details>
+  <summary>Failing Examples</summary>
+  <ul>
+    <li><br>
+<pre lang="json">{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "some/path/file1.png",
+      "ascent": 4,
+      "height": 10,
+      "chars": [
+        "\uE000"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "some/path/file2.png",
+      "ascent": 4,
+      "height": 10,
+      "chars": [
+        "\uE000"
+      ]
+    }
+  ]
+}</pre><br>
+    In this example the font provider references the same character twice, which would override the character.
+    </li>
+  </ul>
+</details>
 
 ## InvalidPathValidator
 Checks if a namespace or resource path violates the allowed pattern: [a-z0-9-_.] (for namespaces) and [a-z0-9-_./] for paths. 
 
 ## ModelRequiresOverlayOverrideValidator
-Checks if a model json, which is present in the default pack, is also present in a specified overlay. This Validator requires some additional configuration to run and may be used to make sure every model in a specified path is overridden in a specific overlay (e.g. to fix certain models in certain game versions).
+Checks if a model json, which is present in the default pack, is also present in a specified overlay. This Validator requires some additional configuration to run and may be used to make sure every model in a specified path is overridden in a specific overlay (e.g. to fix certain models in certain game versions). Take a look at the [config file](CONFIG.md) for more details on how to configure this validator.

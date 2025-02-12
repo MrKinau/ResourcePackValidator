@@ -40,7 +40,7 @@ This is the default config:
     },
     "UnusedFileValidator": {
       "enabled": true,
-      "logLevel": "ERROR",
+      "logLevel": "WARN",
       "ignore": []
     },
     "TextureIsNotCorruptedValidator": {
