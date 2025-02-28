@@ -93,6 +93,12 @@ Checks if an animated texture has too many / too few frames.
 ### Version support
 There is no way to enforce a specific minecraft version, vanilla resources from different 1.20 and 1.21 versions are merged to validate against.
 
+### 1.21.5 missing texture reference particle
+```
+Missing texture references in model namespace:path:
+particle
+```
+
 ## Discord
 To follow the project, get support or request features or bugs you can join my Discord: https://discord.gg/xHpCDYf
 
