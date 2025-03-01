@@ -33,6 +33,11 @@ This is the default config:
       "logLevel": "ERROR",
       "ignore": []
     },
+    "ModelHasParticleTextureValidator": {
+      "enabled": true,
+      "logLevel": "WARN",
+      "ignore": []
+    },
     "ModelOverridesExistsValidator": {
       "enabled": true,
       "logLevel": "ERROR",

@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class ModelTextureReferencesResolvableValidator extends FileContextValidator<JsonObject, JsonObject> {
+public class ModelTextureReferencesResolvableValidator extends FileContextValidator<JsonObject, Map<String, String>> {
 
     private static final int MAX_DEPTH = 10;
 
@@ -28,23 +28,24 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
     }
 
     @Override
-    protected ValidationResult<JsonObject> isValid(ValidationJob job, FileContext context, JsonObject modelObj) {
+    protected ValidationResult<Map<String, String>> isValid(ValidationJob job, FileContext context, JsonObject modelObj) {
         Set<ModelPathWithSource> children = getRealChildren(job, context);
         if (children == null)
             return failedError("Model parent depth is higher than {} at {}", MAX_DEPTH, context.value().getPath());
         if (children.isEmpty())
             children.add(new ModelPathWithSource(false, FileUtils.getRelPath(context, FileUtils.Directory.MODELS)));
 
+        Map<String, String> textureReferences = new HashMap<>();
         boolean failed = false;
         for (ModelPathWithSource child : children) {
-            if (!validateTextureData(child, job, context))
+            if (!validateTextureData(child, job, context, textureReferences))
                 failed = true;
         }
 
         if (failed)
             return failedError();
 
-        return success(modelObj);
+        return success(textureReferences);
     }
 
     private Set<ModelPathWithSource> getCustomChildren(ValidationJob job, FileContext context) {
@@ -100,7 +101,7 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
         return realChildren;
     }
 
-    private boolean validateTextureData(ModelPathWithSource model, ValidationJob job, FileContext context) {
+    private boolean validateTextureData(ModelPathWithSource model, ValidationJob job, FileContext context, Map<String, String> textureReferences) {
         Map<String, TextureReferenceWithSource> textureData = new HashMap<>();
         List<ModelWithSource> parents = getAllParents(model, job, context);
 
@@ -108,6 +109,11 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
         for (ModelWithSource parent : parents) {
             textureData.putAll(getTextureData(parent));
         }
+
+        textureData.forEach((s, textureReferenceWithSource) -> {
+            textureReferences.put(s, textureReferenceWithSource.referenceValue());
+        });
+
 
         if (!detectReferenceChain(textureData, model, context))
             return false;

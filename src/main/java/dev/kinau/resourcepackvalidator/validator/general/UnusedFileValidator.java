@@ -11,6 +11,7 @@ import dev.kinau.resourcepackvalidator.validator.ValidationResult;
 import dev.kinau.resourcepackvalidator.validator.Validator;
 import dev.kinau.resourcepackvalidator.validator.context.EmptyValidationContext;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.event.Level;
 
 import java.io.File;
 import java.nio.file.PathMatcher;
@@ -79,5 +80,10 @@ public class UnusedFileValidator extends Validator<ValidationJob, EmptyValidatio
         if (unusedFiles.size() > 0)
             return failedError();
         return success();
+    }
+
+    @Override
+    protected Level defaultFailedLogLevel() {
+        return Level.WARN;
     }
 }

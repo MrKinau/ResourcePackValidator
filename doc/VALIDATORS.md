@@ -141,6 +141,9 @@ Checks if all hashprefixed referenced textures (e.g. #side) are bound to a textu
   </ul>
 </details>
 
+## ModelHasParticleTextureValidator
+Checks if a model has a particle texture referenced (or layer0 which is used as a fallback). Since Minecraft 1.21.5 the game log prints a warning if this is not defined.
+
 ## ModelOverridesExistsValidator
 Checks if item overrides are correct and the referenced model exists.
 
