@@ -70,6 +70,10 @@ public class TextureAtlas {
             if (path.startsWith("/"))
                 path = path.substring(1);
 
+            String type = this.type;
+            if (type.startsWith("minecraft:"))
+                type = type.substring(10);
+
             if (type.equals("single")) {
                 if (resource != null) {
                     String resource = resource().replace("minecraft:", "");
@@ -91,6 +95,7 @@ public class TextureAtlas {
                     return false;
                 }
             }
+            System.out.println("FALLBACK");
             return true;
         }
     }
