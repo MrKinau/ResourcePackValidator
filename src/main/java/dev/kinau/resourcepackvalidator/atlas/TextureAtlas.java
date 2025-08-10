@@ -30,8 +30,8 @@ public class TextureAtlas {
             } else {
                 this.data = new AtlasData();
             }
-            data.sources().add(new AtlasSource("directory", "item", "", null, null));
-            data.sources().add(new AtlasSource("directory", "block", "", null, null));
+            data.sources().add(new AtlasSource("directory", "item", "", null, null, null));
+            data.sources().add(new AtlasSource("directory", "block", "", null, null, null));
         } catch (Exception ex) {
             log.error("Could not load blocks atlas", ex);
         }
@@ -49,6 +49,14 @@ public class TextureAtlas {
         private final List<AtlasSource> sources = new ArrayList<>();
     }
 
+    @Getter
+    @Accessors(fluent = true)
+    @ToString
+    public static class AtlasFilterType {
+        private String namespace;
+        private String path;
+    }
+
     //TODO: Add "filter" and "unstitch" type and use inherited classes
     @Getter
     @Accessors(fluent = true)
@@ -62,6 +70,8 @@ public class TextureAtlas {
 
         private String resource;
         private String sprite;
+
+        private AtlasFilterType pattern;
 
         public boolean isInAtlas(OverlayNamespace namespace, File file) {
             String path = file.getPath();
@@ -94,9 +104,12 @@ public class TextureAtlas {
                 } else {
                     return false;
                 }
+            } else if (type.equals("filter")) {
+                // TODO filter atlas type
+                return false;
             }
-            System.out.println("FALLBACK");
-            return true;
+            log.warn("Detected unknown texture atlas type: {}, ignoring it", this.type);
+            return false;
         }
     }
 }
