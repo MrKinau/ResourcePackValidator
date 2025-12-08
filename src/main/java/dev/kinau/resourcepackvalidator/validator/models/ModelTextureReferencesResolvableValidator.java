@@ -1,5 +1,6 @@
 package dev.kinau.resourcepackvalidator.validator.models;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.kinau.resourcepackvalidator.ValidationJob;
@@ -15,7 +16,13 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -114,11 +121,13 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
             textureReferences.put(s, textureReferenceWithSource.referenceValue());
         });
 
-
         if (!detectReferenceChain(textureData, model, context))
             return false;
 
         Set<TextureReferenceWithSource> references = textureData.values().stream().filter(s -> s.referenceValue().startsWith("#")).collect(Collectors.toSet());
+        for (ModelWithSource parent : parents) {
+            references.addAll(getFaceReferenceTextures(parent));
+        }
         if (references.isEmpty()) return true;
 
         boolean failed = false;
@@ -197,6 +206,28 @@ public class ModelTextureReferencesResolvableValidator extends FileContextValida
             }
         }
         return textureData;
+    }
+
+    private Set<TextureReferenceWithSource> getFaceReferenceTextures(ModelWithSource modelData) {
+        Set<TextureReferenceWithSource> faceTextures = new HashSet<>();
+
+        if (modelData.modelObject().has("elements") && modelData.modelObject().get("elements").isJsonArray()) {
+            JsonArray elements = modelData.modelObject().getAsJsonArray("elements");
+            for (JsonElement element : elements) {
+                if (!element.isJsonObject()) continue;
+                JsonObject elementObj = element.getAsJsonObject();
+                if (!elementObj.has("faces") || !elementObj.get("faces").isJsonObject()) continue;
+                JsonObject facesObj = elementObj.getAsJsonObject("faces");
+                for (String face : facesObj.keySet()) {
+                    if (!facesObj.get(face).isJsonObject()) continue;
+                    JsonObject faceObj = facesObj.getAsJsonObject(face);
+                    if (!faceObj.has("texture") || !faceObj.get("texture").isJsonPrimitive() || !faceObj.getAsJsonPrimitive("texture").isString()) continue;
+                    if (!faceObj.getAsJsonPrimitive("texture").getAsString().startsWith("#")) continue;
+                    faceTextures.add(new TextureReferenceWithSource(modelData.vanilla(), faceObj.getAsJsonPrimitive("texture").getAsString()));
+                }
+            }
+        }
+        return faceTextures;
     }
 
     private boolean detectReferenceChain(Map<String, TextureReferenceWithSource> textureData, ModelPathWithSource model, FileContext context) {
